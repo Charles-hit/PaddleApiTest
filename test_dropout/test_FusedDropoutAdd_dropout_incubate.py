@@ -37,7 +37,7 @@ class TestMatmulIncubateCase1_FP32(unittest.TestCase):
         del dout_torch
         self.out_torch = out_torch.cpu().detach().numpy()
         self.out_grads_torch = map_structure(
-            lambda x: x.cpu().numpy(),
+            lambda x: x.detach().cpu().numpy(),
             out_grads_torch,
         )
         del out_torch, out_grads_torch
@@ -109,7 +109,7 @@ class TestMatmulIncubateCase1_FP32(unittest.TestCase):
             place="gpu",
         )
         dout_eager.stop_gradient = False
-        return x_torch, y_torch, dout_torch
+        return x_eager, y_eager, dout_eager
 
     def gen_static_inputs_and_dout(self):
         x_static = paddle.static.data(
@@ -187,6 +187,7 @@ class TestMatmulIncubateCase1_FP32(unittest.TestCase):
         develop_res_array = np.load(self.save_eager_res_path)
         out_eager_develop = develop_res_array["out_eager"]
         out_eager_grad_0_develop = develop_res_array["out_grads_eager_0"]
+        out_eager_grad_1_develop = develop_res_array["out_grads_eager_1"]
         out_eager_grads_develop = [
             out_eager_grad_0_develop, out_eager_grad_1_develop
         ]

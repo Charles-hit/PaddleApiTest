@@ -48,7 +48,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         del dout_torch
         self.out_torch = out_torch.cpu().detach().numpy()
         self.out_grads_torch = map_structure(
-            lambda x: x.cpu().numpy(),
+            lambda x: x.detach().cpu().numpy(),
             out_grads_torch,
         )
         del out_torch, out_grads_torch
