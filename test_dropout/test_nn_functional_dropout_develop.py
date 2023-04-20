@@ -3,21 +3,27 @@ import paddle
 import torch
 import unittest
 import sys
+
 sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 from paddle.fluid import core
 from paddle.utils import map_structure
+from paddle.fluid.framework import in_dygraph_mode
 
 seed = 1234
+
 
 def set_seed():
     np.random.seed(seed)
     paddle.seed(seed)
     torch.manual_seed(seed)
+    if not in_dygraph_mode():
+        paddle.framework.random._manual_program_seed(seed)
     if core.is_compiled_with_cuda():
         paddle.set_flags({'FLAGS_cudnn_deterministic': True})
         torch.backends.cudnn.deterministic = True
         torch.cuda.manual_seed_all(seed)
+
 
 def generate_np_inputs_and_dout():
     p = 0.1
@@ -33,8 +39,8 @@ def generate_np_inputs_and_dout():
 
 
 class TestMatmulDevelopCase1_FP32(unittest.TestCase):
+
     def setUp(self):
-        set_seed()
         self.init_params()
         self.init_threshold()
         self.init_np_inputs_and_dout()
@@ -76,16 +82,14 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             self.np_x,
             device='cuda',
             dtype=convert_dtype_to_torch_type(self.dtype)
-            if self.dtype != 'bfloat16'
-            else torch.float32,
+            if self.dtype != 'bfloat16' else torch.float32,
             requires_grad=True,
         )
         dout_torch = torch.tensor(
             self.np_dout,
             device='cuda',
             dtype=convert_dtype_to_torch_type(self.dtype)
-            if self.dtype != 'bfloat16'
-            else torch.float32,
+            if self.dtype != 'bfloat16' else torch.float32,
             requires_grad=True,
         )
         return x_torch, dout_torch
@@ -126,7 +130,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x_t = x.to(dtype=torch.bfloat16)
             dout_t = dout.to(dtype=torch.bfloat16)
-        torch.manual_seed(seed)
+        set_seed()
         out = torch.nn.functional.dropout(x_t, p=self.p)
         out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
         if self.dtype == "bfloat16":
@@ -139,11 +143,9 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x_t = paddle.cast(x, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
-        paddle.seed(seed)
+        set_seed()
         out = paddle.nn.functional.dropout(x_t, p=self.p)
-        out_grads = paddle.grad(
-            [out], [x], grad_outputs=[dout_t]
-        )
+        out_grads = paddle.grad([out], [x], grad_outputs=[dout_t])
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
         return out, out_grads
@@ -154,17 +156,17 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x_t = paddle.cast(x, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
-        paddle.seed(seed)
+        set_seed()
         out = paddle.nn.functional.dropout(x_t, p=self.p)
-        out_grads = paddle.static.gradients(
-            [out], [x], target_gradients=[dout_t]
-        )
+        out_grads = paddle.static.gradients([out], [x],
+                                            target_gradients=[dout_t])
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
         return out, out_grads
 
     def test_eager_accuracy(self):
         x_eager, dout_eager = self.gen_eager_inputs_and_dout()
+        set_seed()
         out_eager, out_grads_eager = self.cal_eager_res(x_eager, dout_eager)
         del x_eager
         del dout_eager
@@ -178,7 +180,8 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager
         paddle.device.cuda.empty_cache()
         # save eager res for test_matmul_incubate
-        np.savez(self.save_eager_res_path, out_eager=out_eager_np,
+        np.savez(self.save_eager_res_path,
+                 out_eager=out_eager_np,
                  out_grads_eager_0=out_grads_eager_np[0])
 
         # compare eager res with torch
@@ -187,10 +190,9 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare paddle.nn.functional.dropout eager forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            err_msg=
+            ('Develop: compare paddle.nn.functional.dropout eager forward res with torch failed in %s dtype'
+             ) % self.dtype,
         )
         for idx in range(len(out_grads_eager_np)):
             np.testing.assert_allclose(
@@ -198,11 +200,11 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
-                err_msg=(
-                    'Develop: compare paddle.nn.functional.dropout eager grad res with torch failed in %s dtype'
-                )
-                % self.dtype,
+                err_msg=
+                ('Develop: compare paddle.nn.functional.dropout eager grad res with torch failed in %s dtype'
+                 ) % self.dtype,
             )
+
     def test_static_accuracy(self):
         with paddle.fluid.framework._dygraph_guard(None):
             mp, sp = paddle.static.Program(), paddle.static.Program()
@@ -212,19 +214,22 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                     x_static,
                     dout_static,
                 )
-            exe = paddle.static.Executor(
-                place=paddle.CUDAPlace(0)
-            )
+            exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
+            set_seed()
             exe.run(sp)
             out = exe.run(
                 mp,
-                feed={"x": self.np_x, "dout": self.np_dout},
+                feed={
+                    "x": self.np_x,
+                    "dout": self.np_dout
+                },
                 fetch_list=[out_static] + out_grads_static,
             )
             out_static, out_grads_static = out[0], out[1:]
 
         # save static res for test_matmul_incubate
-        np.savez(self.save_static_res_path, out_static=out_static,
+        np.savez(self.save_static_res_path,
+                 out_static=out_static,
                  out_grads_static_0=out_grads_static[0])
 
         # compare static res with torch
@@ -233,10 +238,9 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             self.out_torch,
             self.atol,
             self.rtol,
-            err_msg=(
-                'Develop: compare paddle.nn.functional.dropout static forward res with torch failed in %s dtype'
-            )
-            % self.dtype,
+            err_msg=
+            ('Develop: compare paddle.nn.functional.dropout static forward res with torch failed in %s dtype'
+             ) % self.dtype,
         )
         for idx in range(len(out_grads_static)):
             np.testing.assert_allclose(
@@ -244,14 +248,14 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                 self.out_grads_torch[idx],
                 self.atol,
                 self.rtol,
-                err_msg=(
-                    'Develop: compare paddle.nn.functional.dropout static grad res with torch failed in %s dtype'
-                )
-                % self.dtype,
+                err_msg=
+                ('Develop: compare paddle.nn.functional.dropout static grad res with torch failed in %s dtype'
+                 ) % self.dtype,
             )
-    
+
     def test_eager_stability(self):
         x_eager, dout_eager = self.gen_eager_inputs_and_dout()
+        set_seed()
         out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(
             x_eager, dout_eager)
         out_eager_baseline_np = out_eager_baseline.numpy()
@@ -264,6 +268,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         paddle.device.cuda.empty_cache()
 
         for i in range(50):
+            set_seed()
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, dout_eager)
             out_eager = out_eager.numpy()
@@ -274,19 +279,17 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             np.testing.assert_equal(
                 out_eager,
                 out_eager_baseline_np,
-                err_msg=(
-                    'Develop: paddle.nn.functional.dropout eager forward is unstable in %s dtype'
-                )
-                % self.dtype,
+                err_msg=
+                ('Develop: paddle.nn.functional.dropout eager forward is unstable in %s dtype'
+                 ) % self.dtype,
             )
             for idx in range(len(out_grads_eager)):
                 np.testing.assert_equal(
                     out_grads_eager[idx],
                     out_grads_eager_baseline_np[idx],
-                    err_msg=(
-                        'Develop: paddle.nn.functional.dropout eager grad is unstable in %s dtype'
-                    )
-                    % self.dtype,
+                    err_msg=
+                    ('Develop: paddle.nn.functional.dropout eager grad is unstable in %s dtype'
+                     ) % self.dtype,
                 )
 
     def test_static_stability(self):
@@ -299,43 +302,48 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                     x_static,
                     dout_static,
                 )
-            exe = paddle.static.Executor(
-                place=paddle.CUDAPlace(0)
-            )
-
+            exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
+            set_seed()
             exe.run(sp)
             out = exe.run(
                 mp,
-                feed={"x": self.np_x, "dout": self.np_dout},
+                feed={
+                    "x": self.np_x,
+                    "dout": self.np_dout
+                },
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             for i in range(50):
+                set_seed()
                 out = exe.run(
                     mp,
-                    feed={"x": self.np_x, "dout": self.np_dout},
+                    feed={
+                        "x": self.np_x,
+                        "dout": self.np_dout
+                    },
                     fetch_list=[out_static_pg] + out_grads_static_pg,
                 )
                 out_static, out_grads_static = out[0], out[1:]
                 np.testing.assert_equal(
                     out_static,
                     out_static_baseline,
-                    err_msg=(
-                        'Develop: paddle.nn.functional.dropout static forward is unstable in %s dtype'
-                    )
-                    % self.dtype,
+                    err_msg=
+                    ('Develop: paddle.nn.functional.dropout static forward is unstable in %s dtype'
+                     ) % self.dtype,
                 )
                 for idx in range(len(out_grads_static)):
                     np.testing.assert_equal(
                         out_grads_static[idx],
                         out_grads_static_baseline[idx],
-                        err_msg=(
-                            'Develop: paddle.nn.functional.dropout static grad is unstable in %s dtype'
-                        )
-                        % self.dtype,
+                        err_msg=
+                        ('Develop: paddle.nn.functional.dropout static grad is unstable in %s dtype'
+                         ) % self.dtype,
                     )
 
+
 class TestMatmulDevelopCase1_FP16(TestMatmulDevelopCase1_FP32):
+
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
         self.dtype = "float16"
@@ -344,6 +352,7 @@ class TestMatmulDevelopCase1_FP16(TestMatmulDevelopCase1_FP32):
 
 
 class TestMatmulDevelopCase1_BFP16(TestMatmulDevelopCase1_FP32):
+
     def init_params(self):
         self.np_input_dir = "./inputs_case1.npz"
         self.dtype = "bfloat16"
@@ -352,6 +361,7 @@ class TestMatmulDevelopCase1_BFP16(TestMatmulDevelopCase1_FP32):
 
 
 class TestMatmulDevelopCase2_FP32(TestMatmulDevelopCase1_FP32):
+
     def init_params(self):
         self.np_input_dir = "./inputs_case2.npz"
         self.dtype = "float32"
@@ -360,6 +370,7 @@ class TestMatmulDevelopCase2_FP32(TestMatmulDevelopCase1_FP32):
 
 
 class TestMatmulDevelopCase2_FP16(TestMatmulDevelopCase1_FP32):
+
     def init_params(self):
         self.np_input_dir = "./inputs_case2.npz"
         self.dtype = "float16"
@@ -368,6 +379,7 @@ class TestMatmulDevelopCase2_FP16(TestMatmulDevelopCase1_FP32):
 
 
 class TestMatmulDevelopCase2_BFP16(TestMatmulDevelopCase1_FP32):
+
     def init_params(self):
         self.np_input_dir = "./inputs_case2.npz"
         self.dtype = "bfloat16"

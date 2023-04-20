@@ -8,15 +8,21 @@ sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 from paddle.fluid import core
 from paddle.utils import map_structure
+from paddle.fluid.framework import in_dygraph_mode
 
 seed = 1234
-np.random.seed(seed)
-paddle.seed(seed)
-torch.manual_seed(seed)
-if core.is_compiled_with_cuda():
-    paddle.set_flags({'FLAGS_cudnn_deterministic': True})
-    torch.backends.cudnn.deterministic = True
-    torch.cuda.manual_seed_all(seed)
+
+
+def set_seed():
+    np.random.seed(seed)
+    paddle.seed(seed)
+    torch.manual_seed(seed)
+    if not in_dygraph_mode():
+        paddle.framework.random._manual_program_seed(seed)
+    if core.is_compiled_with_cuda():
+        paddle.set_flags({'FLAGS_cudnn_deterministic': True})
+        torch.backends.cudnn.deterministic = True
+        torch.cuda.manual_seed_all(seed)
 
 
 def generate_np_inputs_and_dout():
@@ -151,7 +157,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             x_t = x.to(dtype=torch.bfloat16)
             y_t = y.to(dtype=torch.bfloat16)
             dout_t = dout.to(dtype=torch.bfloat16)
-        torch.manual_seed(seed)
+        set_seed()
         out = torch.nn.functional.dropout(x_t, p=self.p) + y_t
         out_grads = torch.autograd.grad([out], [x, y], grad_outputs=[dout_t])
         if self.dtype == "bfloat16":
@@ -166,7 +172,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             x_t = paddle.cast(x, dtype="uint16")
             y_t = paddle.cast(y, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
-        paddle.seed(seed)
+        set_seed()
         out = paddle.incubate.nn.FusedDropoutAdd(p=self.p)(x_t, y_t)
         out_grads = paddle.grad([out], [x, y], grad_outputs=[dout_t])
         if self.dtype == "bfloat16":
@@ -181,7 +187,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             x_t = paddle.cast(x, dtype="uint16")
             y_t = paddle.cast(y, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
-        paddle.seed(seed)
+        set_seed()
         out = paddle.incubate.nn.FusedDropoutAdd(p=self.p)(x_t, y_t)
         out_grads = paddle.static.gradients([out], [x],
                                             target_gradients=[dout_t])
@@ -191,6 +197,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
 
     def test_eager_accuracy(self):
         x_eager, y_eager, dout_eager = self.gen_eager_inputs_and_dout()
+        set_seed()
         out_eager, out_grads_eager = self.cal_eager_res(
             x_eager, y_eager, dout_eager)
         del x_eager
@@ -244,6 +251,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                     dout_static,
                 )
             exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
+            set_seed()
             exe.run(sp)
             out = exe.run(
                 mp,
@@ -285,6 +293,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
 
     def test_eager_stability(self):
         x_eager, y_eager, dout_eager = self.gen_eager_inputs_and_dout()
+        set_seed()
         out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(
             x_eager, y_eager, dout_eager)
         out_eager_baseline_np = out_eager_baseline.numpy()
@@ -297,6 +306,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
         paddle.device.cuda.empty_cache()
 
         for i in range(50):
+            set_seed()
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, y_eager, dout_eager)
             out_eager = out_eager.numpy()
@@ -333,7 +343,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
                     dout_static,
                 )
             exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
-
+            set_seed()
             exe.run(sp)
             out = exe.run(
                 mp,
@@ -346,6 +356,7 @@ class TestMatmulDevelopCase1_FP32(unittest.TestCase):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             for i in range(50):
+                set_seed()
                 out = exe.run(
                     mp,
                     feed={
