@@ -462,5 +462,6 @@ class TestFCDevelopCase3_BFP16(TestFCDevelopCase1_FP32):
         self.save_eager_res_path = "./eager_develop_res_case3_bfp16.npz"
 
 if __name__ == '__main__':
+    torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = False
     generate_np_inputs_and_dout()
     unittest.main()
