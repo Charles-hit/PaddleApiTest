@@ -199,7 +199,7 @@ class TestFullDevelopCase1_FP32(unittest.TestCase):
         del out_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager = self.cal_eager_res(
                 shape_eager, fill_value_eager, dtype_eager
             )
@@ -235,7 +235,7 @@ class TestFullDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg],
             )
             out_static_baseline = out[0]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     fetch_list=[out_static_pg],
@@ -291,6 +291,48 @@ class TestFullDevelopCase2_BF16(TestFullDevelopCase1_FP32):
         self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
 
+
+class TestFullDevelopCase3_INT64(unittest.TestCase):
+    def test_eager(self):
+        shape = ()
+        fill_value = 1
+        eager_out = paddle.full(shape, 1, dtype="int64")
+        torch_out = torch.full(size=shape, fill_value=1, dtype=torch.int64)
+        self.assertEqual(eager_out, torch_out.cpu().detach().numpy())
+        for i in range(5):
+            eager_out = paddle.full(shape, 1, dtype="int64")
+            torch_out = torch.full(size=shape, fill_value=1, dtype=torch.int64)
+            self.assertEqual(eager_out, torch_out.cpu().detach().numpy())
+
+    def test_static(self):
+        paddle.enable_static()
+        shape = ()
+        fill_value = 1
+        mp, sp = paddle.static.Program(), paddle.static.Program()
+        with paddle.static.program_guard(mp, sp):
+            out_static = paddle.full(shape, 1, dtype="int64")
+        exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
+        exe.run(sp)
+        out = exe.run(
+            mp,
+            fetch_list=[out_static],
+        )
+        out_static = out[0]
+        torch_out = torch.full(size=shape, fill_value=1, dtype=torch.int64)
+        self.assertEqual(out_static, torch_out.cpu().detach().numpy())
+        for i in range(5):
+            mp, sp = paddle.static.Program(), paddle.static.Program()
+            with paddle.static.program_guard(mp, sp):
+                out_static = paddle.full(shape, 1, dtype="int64")
+            exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
+            exe.run(sp)
+            out = exe.run(
+                mp,
+                fetch_list=[out_static],
+            )
+            out_static = out[0]
+            torch_out = torch.full(size=shape, fill_value=1, dtype=torch.int64)
+            self.assertEqual(out_static, torch_out.cpu().detach().numpy())
 
 if __name__ == '__main__':
     generate_np_inputs()

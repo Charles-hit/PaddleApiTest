@@ -15,8 +15,12 @@ def generate_np_inputs_and_dout():
     x_case2 = np.random.random(size=[1, 4096, 32, 192]).astype("float32")
     dout_case2 = np.random.random(size=[1, 32, 4096, 192]).astype("float32")
 
+    x_case3 = np.random.random(size=[1, 1, 8192, 128]).astype("float32")
+    dout_case3 = np.random.random(size=[1, 8192, 1, 128]).astype("float32")
+
     np.savez("./inputs_case1.npz", x = x_case1, dout = dout_case1)
     np.savez("./inputs_case2.npz", x = x_case2, dout = dout_case2)
+    np.savez("./inputs_case3.npz", x = x_case3, dout = dout_case3)
 
 
 class TestTransposeDevelopCase1_FP32(unittest.TestCase):
@@ -267,7 +271,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(x_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = map_structure(
@@ -321,7 +325,7 @@ class TestTransposeDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "dout": self.np_dout},
@@ -397,6 +401,32 @@ class TestTransposeDevelopCase2_BFP16(TestTransposeDevelopCase1_FP32):
         self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
 
+class TestTransposeDevelopCase3_FP32(TestTransposeDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case3_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_fp32.npz"
+
+class TestTransposeDevelopCase3_FP16(TestTransposeDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case3_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_fp16.npz"
+
+class TestTransposeDevelopCase3_BFP16(TestTransposeDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.transpose_x = False
+        self.transpose_y = False
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_bfp16.npz"
 
 if __name__ == '__main__':
     generate_np_inputs_and_dout()

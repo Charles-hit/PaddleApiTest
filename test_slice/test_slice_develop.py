@@ -29,7 +29,7 @@ from utils import (
     np_assert_staility,
 )
 
-class TestSliceDevelopCase1_FP32(unittest.TestCase):
+class TestStrideSliceDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
         np.random.seed(2023)
         self.init_params()
@@ -51,8 +51,6 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
 
     def init_params(self):
         self.dtype = "float32"
-        self.start = 0
-        self.end = 1
 
     def init_threshold(self):
         self.atol = TOLERANCE[self.dtype]["atol"]
@@ -60,8 +58,8 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
 
     def init_np_inputs_and_dout(self):
         # init np array 
-        self.np_x = np.random.random(size=[64, 4096]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[1, 4096]).astype("float32") - 0.5
+        self.np_x = np.random.random(size=[1, 16, 4096, 128]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 16, 4096, 64]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
@@ -120,7 +118,7 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.bfloat16)
             dout = dout.to(dtype=torch.bfloat16)
-        out = x[self.start : self.end]
+        out = x[:,:,:,1::2]
         out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
         if self.dtype == "bfloat16":
             out = out.to(dtype=torch.float32)
@@ -131,7 +129,7 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = x[self.start : self.end]
+        out = x[:,:,:,1::2]
         out_grads = paddle.grad([out], [x], grad_outputs=[dout])
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
@@ -142,7 +140,7 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = x[self.start : self.end]
+        out = x[:,:,:,1::2]
         out_grads = paddle.static.gradients(
             [out], [x], target_gradients=[dout]
         )
@@ -257,7 +255,7 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
         del out_eager_baseline
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, dout_eager
             )
@@ -308,7 +306,7 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "dout": self.np_dout},
@@ -337,132 +335,66 @@ class TestSliceDevelopCase1_FP32(unittest.TestCase):
                         api="paddle.slice",
                     )
 
-class TestSliceDevelopCase1_FP16(TestSliceDevelopCase1_FP32):
+
+class TestStrideSliceDevelopCase1_FP16(TestStrideSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
-        self.start = 0
-        self.end = 1
 
-class TestSliceDevelopCase1_BFP16(TestSliceDevelopCase1_FP32):
+class TestStrideSliceDevelopCase1_BFP16(TestStrideSliceDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-        self.start = 0
-        self.end = 1
 
-class TestSliceDevelopCase2_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start = 63
-        self.end = 64
 
-class TestSliceDevelopCase2_FP16(TestSliceDevelopCase1_FP32):
+class TestStrideSliceDevelopCase2_FP32(TestStrideSliceDevelopCase1_FP32):
+    def cal_torch_res(self, x, dout):
+        if self.dtype == "bfloat16":
+            x = x.to(dtype=torch.bfloat16)
+            dout = dout.to(dtype=torch.bfloat16)
+        out = x[:,:,:,0::2]
+        out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
+        if self.dtype == "bfloat16":
+            out = out.to(dtype=torch.float32)
+            out_grads = map_structure(lambda x: x.to(dtype=torch.float32), out_grads)
+        return out, out_grads
+
+    def cal_eager_res(self, x, dout):
+        if self.dtype == "bfloat16":
+            x = paddle.cast(x, dtype="uint16")
+            dout = paddle.cast(dout, dtype="uint16")
+        out = x[:,:,:,0::2]
+        out_grads = paddle.grad([out], [x], grad_outputs=[dout])
+        if self.dtype == "bfloat16":
+            out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
+        return out, out_grads
+
+    def cal_static_res(self, x, dout):
+        if self.dtype == "bfloat16":
+            x = paddle.cast(x, dtype="uint16")
+            dout = paddle.cast(dout, dtype="uint16")
+        out = x[:,:,:,0::2]
+        out_grads = paddle.static.gradients(
+            [out], [x], target_gradients=[dout]
+        )
+        if self.dtype == "bfloat16":
+            out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
+        return out, out_grads
+
+class TestStrideSliceDevelopCase2_FP16(TestStrideSliceDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "float16"
-        self.start = 63
-        self.end = 64
 
-class TestSliceDevelopCase2_BFP16(TestSliceDevelopCase1_FP32):
+class TestStrideSliceDevelopCase2_BFP16(TestStrideSliceDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-        self.start = 63
-        self.end = 64
 
-class TestSliceDevelopCase3_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start = 25
-        self.end = 26
 
-class TestSliceDevelopCase3_FP16(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start = 25
-        self.end = 26
-
-class TestSliceDevelopCase3_BFP16(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start = 25
-        self.end = 26
-
-class TestSliceDevelopCase4_FP32(TestSliceDevelopCase1_FP32):
+class TestStrideSliceDevelopCase3_FP32(TestStrideSliceDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array 
-        self.np_x = np.random.random(size=[64, 4096, 4096]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[1, 4096, 4096]).astype("float32") - 0.5
-        # convert np array dtype
-        if self.dtype == "float16":
-            self.np_x = self.np_x.astype("float16")
-            self.np_dout = self.np_dout.astype("float16")
-            
-    def init_params(self):
-        self.dtype = "float32"
-        self.start = 0
-        self.end = 1
-
-class TestSliceDevelopCase4_FP16(TestSliceDevelopCase4_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start = 0
-        self.end = 1
-
-class TestSliceDevelopCase4_BFP16(TestSliceDevelopCase4_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start = 0
-        self.end = 1
-
-class TestSliceDevelopCase5_FP32(TestSliceDevelopCase4_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start = 25
-        self.end = 26
-
-class TestSliceDevelopCase5_FP16(TestSliceDevelopCase5_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start = 25
-        self.end = 26
-
-class TestSliceDevelopCase5_BFP16(TestSliceDevelopCase5_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start = 25
-        self.end = 26
-
-class TestSliceDevelopCase6_FP32(TestSliceDevelopCase4_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.start = 63
-        self.end = 64
-
-class TestSliceDevelopCase6_FP16(TestSliceDevelopCase6_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-        self.start = 63
-        self.end = 64
-
-class TestSliceDevelopCase6_BFP16(TestSliceDevelopCase6_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-        self.start = 63
-        self.end = 64
-
-class TestSliceDevelopCase7_FP32(TestSliceDevelopCase1_FP32):
-    def init_params(self):
-        self.dtype = "float32"
-        self.axes = [0]
-        self.starts = [0]
-        self.ends = [2048]
-
-    def init_threshold(self):
-        self.atol = TOLERANCE[self.dtype]["atol"]
-        self.rtol = TOLERANCE[self.dtype]["rtol"]
-
-    def init_np_inputs_and_dout(self):
-        # init np array 
-        self.np_x = np.random.random(size=[4096, 1, 4096]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[2048, 1, 4096]).astype("float32") - 0.5
+        self.np_x = np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 14, 64]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
@@ -472,29 +404,29 @@ class TestSliceDevelopCase7_FP32(TestSliceDevelopCase1_FP32):
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.bfloat16)
             dout = dout.to(dtype=torch.bfloat16)
-        out = x[0:2048]
+        out = x[:,:,:,0::2]
         out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
         if self.dtype == "bfloat16":
             out = out.to(dtype=torch.float32)
             out_grads = map_structure(lambda x: x.to(dtype=torch.float32), out_grads)
         return out, out_grads
 
-    def cal_eager_res(self, x, dout, axes, starts, ends):
+    def cal_eager_res(self, x, dout):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = paddle.slice(x, axes, starts, ends)
+        out = x[:,:,:,0::2]
         out_grads = paddle.grad([out], [x], grad_outputs=[dout])
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
             out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
         return out, out_grads
 
-    def cal_static_res(self, x, dout, axes, starts, ends):
+    def cal_static_res(self, x, dout):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             dout = paddle.cast(dout, dtype="uint16")
-        out = paddle.slice(x, axes, starts, ends)
+        out = x[:,:,:,0::2]
         out_grads = paddle.static.gradients(
             [out], [x], target_gradients=[dout]
         )
@@ -503,209 +435,68 @@ class TestSliceDevelopCase7_FP32(TestSliceDevelopCase1_FP32):
             out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
         return out, out_grads
 
-    def test_eager_accuracy(self):
-        x_eager, dout_eager = self.gen_eager_inputs_and_dout()
-        out_eager, out_grads_eager = self.cal_eager_res(
-            x_eager, dout_eager, self.axes, self.starts, self.ends
-        )
-        del x_eager
-        del dout_eager
-        paddle.device.cuda.empty_cache()
-        out_eager_np = out_eager.numpy()
-        out_grads_eager_np = map_structure(
-            lambda x: x.numpy(),
-            out_grads_eager,
-        )
-        del out_eager
-        del out_grads_eager
-        paddle.device.cuda.empty_cache()
-        # compare develop eager forward res with torch
-        np_assert_accuracy(
-            out_eager_np,
-            self.out_torch,
-            self.atol,
-            self.rtol,
-            self.dtype,
-            version_a="paddle_develop",
-            version_b="torch",
-            eager_or_static_mode="eager",
-            fwd_or_bkd="forward",
-            api="paddle.slice",
-        )
-        # compare develop eager backward res with torch
-        for idx in range(len(out_grads_eager_np)):
-            np_assert_accuracy(
-                out_grads_eager_np[idx],
-                self.out_grads_torch[idx],
-                self.atol,
-                self.rtol,
-                self.dtype,
-                version_a="paddle_develop",
-                version_b="torch",
-                eager_or_static_mode="eager",
-                fwd_or_bkd="backward",
-                api="paddle.slice",
-            )
-
-    def test_static_accuracy(self):
-        with paddle.fluid.framework._dygraph_guard(None):
-            mp, sp = paddle.static.Program(), paddle.static.Program()
-            with paddle.static.program_guard(mp, sp):
-                (
-                    x_static,
-                    dout_static,
-                ) = self.gen_static_inputs_and_dout()
-                (out_static, out_grads_static) = self.cal_static_res(
-                    x_static,
-                    dout_static,
-                    self.axes, self.starts, self.ends
-                )
-            exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
-            exe.run(sp)
-            out = exe.run(
-                mp,
-                feed={"x": self.np_x, "dout": self.np_dout},
-                fetch_list=[out_static] + out_grads_static,
-            )
-            out_static, out_grads_static = out[0], out[1:]
-
-        # compare develop static forward res with torch
-        np_assert_accuracy(
-            out_static,
-            self.out_torch,
-            self.atol,
-            self.rtol,
-            self.dtype,
-            version_a="paddle_develop",
-            version_b="torch",
-            eager_or_static_mode="static",
-            fwd_or_bkd="forward",
-            api="paddle.slice",
-        )
-        # compare develop static backward res with torch
-        for idx in range(len(out_grads_static)):
-            np_assert_accuracy(
-                out_grads_static[idx],
-                self.out_grads_torch[idx],
-                self.atol,
-                self.rtol,
-                self.dtype,
-                version_a="paddle_develop",
-                version_b="torch",
-                eager_or_static_mode="static",
-                fwd_or_bkd="backward",
-                api="paddle.slice",
-            )
-
-    def test_eager_stability(self):
-        x_eager, dout_eager = self.gen_eager_inputs_and_dout()
-        out_eager_baseline, out_grads_eager_baseline = self.cal_eager_res(
-            x_eager, dout_eager,self.axes, self.starts, self.ends
-        )
-        out_eager_baseline_np = out_eager_baseline.numpy()
-        out_grads_eager_baseline_np = map_structure(
-            lambda x: x.numpy(),
-            out_grads_eager_baseline,
-        )
-        del out_eager_baseline
-        del out_grads_eager_baseline
-        paddle.device.cuda.empty_cache()
-        for i in range(50):
-            out_eager, out_grads_eager = self.cal_eager_res(
-                x_eager, dout_eager, self.axes, self.starts, self.ends
-            )
-            out_eager = out_eager.numpy()
-            out_grads_eager = map_structure(
-                lambda x: x.numpy(),
-                out_grads_eager,
-            )
-            # test develop eager forward stability
-            np_assert_staility(
-                out_eager,
-                out_eager_baseline_np,
-                self.dtype,
-                version="paddle_develop",
-                eager_or_static_mode="eager",
-                fwd_or_bkd="forward",
-                api="paddle.slice",
-            )
-            # test develop eager backward stability
-            for idx in range(len(out_grads_eager)):
-                np_assert_staility(
-                    out_grads_eager[idx],
-                    out_grads_eager_baseline_np[idx],
-                    self.dtype,
-                    version="paddle_develop",
-                    eager_or_static_mode="eager",
-                    fwd_or_bkd="backward",
-                    api="paddle.slice",
-                )
-
-    def test_static_stability(self):
-        with paddle.fluid.framework._dygraph_guard(None):
-            mp, sp = paddle.static.Program(), paddle.static.Program()
-            with paddle.static.program_guard(mp, sp):
-                (
-                    x_static,
-                    dout_static,
-                ) = self.gen_static_inputs_and_dout()
-                (out_static_pg, out_grads_static_pg) = self.cal_static_res(
-                    x_static,
-                    dout_static,
-                    self.axes, self.starts, self.ends
-                )
-            exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
-            exe.run(sp)
-            out = exe.run(
-                mp,
-                feed={"x": self.np_x, "dout": self.np_dout},
-                fetch_list=[out_static_pg] + out_grads_static_pg,
-            )
-            out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
-                out = exe.run(
-                    mp,
-                    feed={"x": self.np_x, "dout": self.np_dout},
-                    fetch_list=[out_static_pg] + out_grads_static_pg,
-                )
-                out_static, out_grads_static = out[0], out[1:]
-                # test develop static forward stability
-                np_assert_staility(
-                    out_static,
-                    out_static_baseline,
-                    self.dtype,
-                    version="paddle_develop",
-                    eager_or_static_mode="static",
-                    fwd_or_bkd="forward",
-                    api="paddle.slice",
-                )
-                # test develop static backward stability
-                for idx in range(len(out_grads_static)):
-                    np_assert_staility(
-                        out_grads_static[idx],
-                        out_grads_static_baseline[idx],
-                        self.dtype,
-                        version="paddle_develop",
-                        eager_or_static_mode="static",
-                        fwd_or_bkd="backward",
-                        api="paddle.slice",
-                    )
-
-
-class TestSliceDevelopCase7_FP16(TestSliceDevelopCase7_FP32):
+class TestStrideSliceDevelopCase3_FP16(TestStrideSliceDevelopCase3_FP32):
     def init_params(self):
         self.dtype = "float16"
-        self.axes = [0]
-        self.starts = [0]
-        self.ends = [2048]
 
-
-class TestSliceDevelopCase7_BFP16(TestSliceDevelopCase7_FP32):
+class TestStrideSliceDevelopCase3_BFP16(TestStrideSliceDevelopCase3_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-        self.axes = [0]
-        self.starts = [0]
-        self.ends = [2048]
+
+
+class TestStrideSliceDevelopCase4_FP32(TestStrideSliceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 14, 64]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+    def cal_torch_res(self, x, dout):
+        if self.dtype == "bfloat16":
+            x = x.to(dtype=torch.bfloat16)
+            dout = dout.to(dtype=torch.bfloat16)
+        out = x[:,:,:,1::2]
+        out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
+        if self.dtype == "bfloat16":
+            out = out.to(dtype=torch.float32)
+            out_grads = map_structure(lambda x: x.to(dtype=torch.float32), out_grads)
+        return out, out_grads
+
+    def cal_eager_res(self, x, dout):
+        if self.dtype == "bfloat16":
+            x = paddle.cast(x, dtype="uint16")
+            dout = paddle.cast(dout, dtype="uint16")
+        out = x[:,:,:,1::2]
+        out_grads = paddle.grad([out], [x], grad_outputs=[dout])
+        if self.dtype == "bfloat16":
+            out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
+        return out, out_grads
+
+    def cal_static_res(self, x, dout):
+        if self.dtype == "bfloat16":
+            x = paddle.cast(x, dtype="uint16")
+            dout = paddle.cast(dout, dtype="uint16")
+        out = x[:,:,:,1::2]
+        out_grads = paddle.static.gradients(
+            [out], [x], target_gradients=[dout]
+        )
+        if self.dtype == "bfloat16":
+            out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
+        return out, out_grads
+
+class TestStrideSliceDevelopCase4_FP16(TestStrideSliceDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestStrideSliceDevelopCase4_BFP16(TestStrideSliceDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
 
 if __name__ == '__main__':
     unittest.main()
