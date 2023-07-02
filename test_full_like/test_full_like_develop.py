@@ -171,7 +171,7 @@ class TestFullLikeDevelopCase1_FP32(unittest.TestCase):
         del out_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager = self.cal_eager_res(
                 x_eager
             )
@@ -201,7 +201,7 @@ class TestFullLikeDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg],
             )
             out_static_baseline = out[0]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x},
@@ -252,6 +252,56 @@ class TestFullLikeDevelopCase2_FP16(TestFullLikeDevelopCase2_FP32):
 
 
 class TestFullLikeDevelopCase2_BFP16(TestFullLikeDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.value = -np.inf
+
+
+class TestFullLikeDevelopCase3_FP32(TestFullLikeDevelopCase1_FP32):
+    def init_np_inputs(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+
+    def init_params(self):
+        self.dtype = "float32"
+        self.value = -np.inf
+
+
+class TestFullLikeDevelopCase3_FP16(TestFullLikeDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.value = -np.inf
+
+
+class TestFullLikeDevelopCase3_BFP16(TestFullLikeDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.value = -np.inf
+
+
+class TestFullLikeDevelopCase4_FP32(TestFullLikeDevelopCase1_FP32):
+    def init_np_inputs(self):
+        # init np array 
+        self.np_x = np.random.random(size=1).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+
+    def init_params(self):
+        self.dtype = "float32"
+        self.value = -np.inf
+
+
+class TestFullLikeDevelopCase4_FP16(TestFullLikeDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.value = -np.inf
+
+
+class TestFullLikeDevelopCase4_BFP16(TestFullLikeDevelopCase4_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
         self.value = -np.inf

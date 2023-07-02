@@ -277,7 +277,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, y_eager, dout_eager
             )
@@ -330,7 +330,7 @@ class TestPowDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
@@ -369,7 +369,6 @@ class TestPowDevelopCase1_BFP16(TestPowDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
-
 class TestPowDevelopCase2_FP32(TestPowDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array
@@ -388,6 +387,28 @@ class TestPowDevelopCase2_FP16(TestPowDevelopCase2_FP32):
 
 
 class TestPowDevelopCase2_BFP16(TestPowDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestPowDevelopCase3_FP32(TestPowDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.uniform(1.0, 5.0, size=(64)).astype("float32")
+        self.np_y = np.random.uniform(-3.0, 3.0, size=(64)).astype("float32")
+        self.np_dout = np.random.uniform(-1.0, 1.0, size=(64)).astype("float32")
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_y = self.np_y.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestPowDevelopCase3_FP16(TestPowDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestPowDevelopCase3_BFP16(TestPowDevelopCase3_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 

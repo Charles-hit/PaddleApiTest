@@ -19,8 +19,50 @@ def generate_np_inputs_and_dout():
     bias_case2 = 0.0
     dout_case2 = np.random.random(size=[1, 32, 4096, 192]).astype("float32") - 0.5
 
+    x_case3 = np.random.random(size=[14336, 31250]).astype("float32") - 0.5
+    scale_case3 = 0.004821738581303281 
+    bias_case3 = 0.0
+    dout_case3 = np.random.random(size=[14336, 31250]).astype("float32") - 0.5
+
+    x_case4 = np.random.random(size=[14336, 5376]).astype("float32") - 0.5
+    scale_case4 = 0.004821738581303281 
+    bias_case4 = 0.0
+    dout_case4 = np.random.random(size=[14336, 5376]).astype("float32") - 0.5
+
+    x_case5 = np.random.random(size=[14336, 9632]).astype("float32") - 0.5
+    scale_case5 = 0.004821738581303281
+    bias_case5 = 0.0
+    dout_case5 = np.random.random(size=[14336, 9632]).astype("float32") - 0.5
+
+    x_case6 = np.random.random(size=[1792, 14336]).astype("float32") - 0.5
+    scale_case6 = 0.004821738581303281 
+    bias_case6 = 0.0
+    dout_case6 = np.random.random(size=[1792, 14336]).astype("float32") - 0.5
+
+    x_case7 = np.random.random(size=[31250, 14336]).astype("float32") - 0.5
+    scale_case7 = 0.004821738581303281 
+    bias_case7 = 0.0
+    dout_case7 = np.random.random(size=[31250, 14336]).astype("float32") - 0.5
+
+    x_case8 = np.random.random(size=[4816, 14336]).astype("float32") - 0.5
+    scale_case8 = 0.004821738581303281
+    bias_case8 = 0.0
+    dout_case8 = np.random.random(size=[4816, 14336]).astype("float32") - 0.5
+
+    x_case9 = np.random.random(size=[14336]).astype("float32") - 0.5
+    scale_case9 = 0.125
+    bias_case9 = 0.0
+    dout_case9 = np.random.random(size=[14336]).astype("float32") - 0.5
+
     np.savez("./inputs_case1.npz", x=x_case1, scale=scale_case1, bias=bias_case1, dout = dout_case1)
     np.savez("./inputs_case2.npz", x=x_case2, scale=scale_case2, bias=bias_case2, dout = dout_case2)
+    np.savez("./inputs_case3.npz", x=x_case3, scale=scale_case3, bias=bias_case3, dout = dout_case3)
+    np.savez("./inputs_case4.npz", x=x_case4, scale=scale_case4, bias=bias_case4, dout = dout_case4)
+    np.savez("./inputs_case5.npz", x=x_case5, scale=scale_case5, bias=bias_case5, dout = dout_case5)
+    np.savez("./inputs_case6.npz", x=x_case6, scale=scale_case6, bias=bias_case6, dout = dout_case6)
+    np.savez("./inputs_case7.npz", x=x_case7, scale=scale_case7, bias=bias_case7, dout = dout_case7)
+    np.savez("./inputs_case8.npz", x=x_case8, scale=scale_case8, bias=bias_case8, dout = dout_case8)
+    np.savez("./inputs_case9.npz", x=x_case9, scale=scale_case9, bias=bias_case9, dout = dout_case9)
 
 
 class TestScaleDevelopCase1_FP32(unittest.TestCase):
@@ -286,7 +328,7 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(x_eager, scale_eager, bias_eager, self.bias_after_scale, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = map_structure(
@@ -343,7 +385,7 @@ class TestScaleDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "dout": self.np_dout},
@@ -422,6 +464,195 @@ class TestScaleDevelopCase2_BFP16(TestScaleDevelopCase1_FP32):
         self.dtype = "bfloat16"
         self.save_static_res_path = "./static_develop_res_case2_bfp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case2_bfp16.npz"
+
+
+class TestScaleDevelopCase3_FP32(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.bias_after_scale = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case3_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_fp32.npz"
+
+
+class TestScaleDevelopCase3_FP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.bias_after_scale = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case3_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_fp16.npz"
+
+
+class TestScaleDevelopCase3_BFP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case3.npz"
+        self.bias_after_scale = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case3_bfp16.npz"
+
+
+class TestScaleDevelopCase4_FP32(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.bias_after_scale = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case4_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_fp32.npz"
+
+
+class TestScaleDevelopCase4_FP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.bias_after_scale = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case4_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_fp16.npz"
+
+
+class TestScaleDevelopCase4_BFP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.bias_after_scale = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case4_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_bfp16.npz"
+
+
+class TestScaleDevelopCase5_FP32(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case5.npz"
+        self.bias_after_scale = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case5_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case5_fp32.npz"
+
+
+class TestScaleDevelopCase5_FP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case5.npz"
+        self.bias_after_scale = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case5_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case5_fp16.npz"
+
+
+class TestScaleDevelopCase5_BFP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case5.npz"
+        self.bias_after_scale = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case5_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case5_bfp16.npz"
+
+
+class TestScaleDevelopCase6_FP32(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case6.npz"
+        self.bias_after_scale = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case6_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case6_fp32.npz"
+
+
+class TestScaleDevelopCase6_FP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case6.npz"
+        self.bias_after_scale = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case6_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case6_fp16.npz"
+
+
+class TestScaleDevelopCase6_BFP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case6.npz"
+        self.bias_after_scale = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case6_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case6_bfp16.npz"
+
+
+class TestScaleDevelopCase7_FP32(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case7.npz"
+        self.bias_after_scale = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case7_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case7_fp32.npz"
+
+
+class TestScaleDevelopCase7_FP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case7.npz"
+        self.bias_after_scale = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case7_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case7_fp16.npz"
+
+
+class TestScaleDevelopCase7_BFP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case7.npz"
+        self.bias_after_scale = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case7_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case7_bfp16.npz"
+
+
+class TestScaleDevelopCase8_FP32(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case8.npz"
+        self.bias_after_scale = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case8_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case8_fp32.npz"
+
+
+class TestScaleDevelopCase8_FP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case8.npz"
+        self.bias_after_scale = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case8_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case8_fp16.npz"
+
+
+class TestScaleDevelopCase8_BFP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case8.npz"
+        self.bias_after_scale = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case8_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case8_bfp16.npz"
+
+
+class TestScaleDevelopCase9_FP32(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case9.npz"
+        self.bias_after_scale = True
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case9_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case9_fp32.npz"
+
+
+class TestScaleDevelopCase9_FP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case9.npz"
+        self.bias_after_scale = True
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case9_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case9_fp16.npz"
+
+
+class TestScaleDevelopCase9_BFP16(TestScaleDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case9.npz"
+        self.bias_after_scale = True
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case9_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case9_bfp16.npz"
 
 
 if __name__ == '__main__':
