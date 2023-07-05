@@ -1,0 +1,8 @@
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/fa-fp32-fp32-bf16-bf16-fp32-eager_tmp_111-eager_tmp_112-eager_tmp_113-eager_tmp_114-eager_tmp_115-pp-11-mp-0
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/fa-fp32-fp32-bf16-bf16-fp32-eager_tmp_111-eager_tmp_112-eager_tmp_113-eager_tmp_114-eager_tmp_115-pp-11-mp-1
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/fa-fp32-fp32-bf16-bf16-fp32-eager_tmp_111-eager_tmp_112-eager_tmp_113-eager_tmp_114-eager_tmp_115-pp-11-mp-2
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/fa-fp32-fp32-bf16-bf16-fp32-eager_tmp_111-eager_tmp_112-eager_tmp_113-eager_tmp_114-eager_tmp_115-pp-11-mp-3
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/fa-fp32-fp32-bf16-bf16-fp32-eager_tmp_111-eager_tmp_112-eager_tmp_113-eager_tmp_114-eager_tmp_115-pp-11-mp-4
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/fa-fp32-fp32-bf16-bf16-fp32-eager_tmp_111-eager_tmp_112-eager_tmp_113-eager_tmp_114-eager_tmp_115-pp-11-mp-5
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/fa-fp32-fp32-bf16-bf16-fp32-eager_tmp_111-eager_tmp_112-eager_tmp_113-eager_tmp_114-eager_tmp_115-pp-11-mp-6
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/fa-fp32-fp32-bf16-bf16-fp32-eager_tmp_111-eager_tmp_112-eager_tmp_113-eager_tmp_114-eager_tmp_115-pp-11-mp-7

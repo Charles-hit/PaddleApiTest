@@ -25,6 +25,7 @@ sys.path.append("../..")
 from utils import (
     np_assert_accuracy,
 )
+niuliling_path = None  # 全局变量
 
 class TestMatmulFP32vsBFP16(unittest.TestCase):
     def setUp(self):
@@ -32,9 +33,14 @@ class TestMatmulFP32vsBFP16(unittest.TestCase):
 
     def init_np_inputs_and_dout(self):
         # init np array 
-        self.np_x = np.random.random(size=[1, 8192, 14336]).astype("float32") - 0.5
-        self.np_y = np.random.random(size=[14336, 12528]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[1, 8192, 12528]).astype("float32") - 0.5
+        data_xy = np.load(niuliling_path+".npz")
+        data_dout = np.load(niuliling_path+".npy")
+
+        self.np_x = data_xy["x"].astype("float32")
+        self.np_y = data_xy["y"].astype("float32")
+        print("shape x", self.np_x.shape)
+        print("shape y", self.np_y.shape)
+        self.np_dout = data_dout.astype("float32")
     
     def gen_eager_inputs_and_dout(self):
         x = paddle.to_tensor(
@@ -56,6 +62,7 @@ class TestMatmulFP32vsBFP16(unittest.TestCase):
         )
         dout.stop_gradient = False
         return x, y, dout
+
     def cal_res(self, x, y, dout):
         out = paddle.matmul(x, y)
         out_grads = paddle.grad([out], [x, y], grad_outputs=[dout])
@@ -143,5 +150,13 @@ class TestMatmulFP32vsBFP16(unittest.TestCase):
             print(e)
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("请提供 data_path 参数")
+        sys.exit(1)
+
+    tmp = sys.argv[1]  # 设置全局变量 data_path
+    niuliling_path = tmp
+    print(tmp) 
+    del sys.argv[1]
     np.random.seed(2023)
     unittest.main()
