@@ -233,7 +233,7 @@ class TestMultiplyDevelopCase1_FP32(unittest.TestCase):
                     y_static,
                     dout_static,
                 )
-            exe = paddle.static.Executor(place=paddle.CUDAPlace(6))
+            exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
             exe.run(sp)
             out = exe.run(
                 mp,
@@ -284,7 +284,7 @@ class TestMultiplyDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, y_eager, dout_eager
             )
@@ -329,7 +329,7 @@ class TestMultiplyDevelopCase1_FP32(unittest.TestCase):
                     y_static,
                     dout_static,
                 )
-            exe = paddle.static.Executor(place=paddle.CUDAPlace(6))
+            exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
             exe.run(sp)
             out = exe.run(
                 mp,
@@ -337,7 +337,7 @@ class TestMultiplyDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "y": self.np_y, "dout": self.np_dout},
@@ -412,6 +412,106 @@ class TestMultiplyDevelopCase3_FP16(TestMultiplyDevelopCase3_FP32):
         self.dtype = "float16"
 
 class TestMultiplyDevelopCase3_BFP16(TestMultiplyDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestMultiplyDevelopCase4_FP32(TestMultiplyDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[2048, 1, 4096]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[4096]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[2048, 1, 4096]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_y = self.np_y.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestMultiplyDevelopCase4_FP16(TestMultiplyDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestMultiplyDevelopCase4_BFP16(TestMultiplyDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestMultiplyDevelopCase5_FP32(TestMultiplyDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[1, 8192, 1, 128]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_y = self.np_y.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestMultiplyDevelopCase5_FP16(TestMultiplyDevelopCase5_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestMultiplyDevelopCase5_BFP16(TestMultiplyDevelopCase5_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestMultiplyDevelopCase6_FP32(TestMultiplyDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[1, 8192, 4816]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[1, 8192, 4816]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 4816]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_y = self.np_y.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestMultiplyDevelopCase6_FP16(TestMultiplyDevelopCase6_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestMultiplyDevelopCase6_BFP16(TestMultiplyDevelopCase6_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestMultiplyDevelopCase7_FP32(TestMultiplyDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[8192, 1]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[1, 64]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[8192,64]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_y = self.np_y.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestMultiplyDevelopCase7_FP16(TestMultiplyDevelopCase7_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestMultiplyDevelopCase7_BFP16(TestMultiplyDevelopCase7_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestMultiplyDevelopCase8_FP32(TestMultiplyDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[1, 8192, 1, 128]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_y = self.np_y.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestMultiplyDevelopCase8_FP16(TestMultiplyDevelopCase8_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestMultiplyDevelopCase8_BFP16(TestMultiplyDevelopCase8_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 

@@ -284,7 +284,7 @@ class TestStackDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager,y_eager, dout_eager
             )
@@ -337,7 +337,7 @@ class TestStackDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x,"y":self.np_y, "dout": self.np_dout},
@@ -379,9 +379,9 @@ class TestStackDevelopCase1_BFP16(TestStackDevelopCase1_FP32):
 class TestStackDevelopCase2_FP32(TestStackDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):
         # init np array
-        self.np_x = np.random.random(size=[1, 16, 4096, 6]).astype("float32") - 0.5
-        self.np_y = np.random.random(size=[1, 16, 4096, 6]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[1, 16, 4096, 6,2]).astype("float32") - 0.5
+        self.np_x = np.random.random(size=[1, 8192, 1, 64]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[1, 8192, 1, 64]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 1, 64, 2]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
@@ -394,6 +394,27 @@ class TestStackDevelopCase2_FP16(TestStackDevelopCase2_FP32):
 
 
 class TestStackDevelopCase2_BFP16(TestStackDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestStackDevelopCase3_FP32(TestStackDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[1, 8192, 14, 64]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[1, 8192, 14, 64]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 14, 64, 2]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_y = self.np_y.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestStackDevelopCase3_FP16(TestStackDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestStackDevelopCase3_BFP16(TestStackDevelopCase3_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 

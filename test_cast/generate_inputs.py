@@ -8,6 +8,6 @@ def generate_inputs(shape, len):
   return ret
 
 if __name__ == "__main__":
-  inputs = generate_inputs([1024, 1024], 20)
+  inputs = generate_inputs([14336, 31250], 5)
   path = "inputs.pkl"
   io.Pickle.save(inputs, path)

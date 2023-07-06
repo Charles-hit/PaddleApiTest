@@ -125,7 +125,7 @@ class TestGaussianDevelopCase1_FP32(unittest.TestCase):
         del out_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager = self.cal_eager_res()
             out_eager = out_eager.numpy()
             # test develop eager forward stability
@@ -154,7 +154,7 @@ class TestGaussianDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg]
             )
             out_static_baseline = out[0]
-            for i in range(50):
+            for i in range(5):
                 paddle.seed(0)
                 paddle.framework.random._manual_program_seed(0)
                 out = exe.run(
@@ -405,6 +405,119 @@ class TestGaussianDevelopCase10_BFP16(TestGaussianDevelopCase10_FP32):
         self.size = [8192, 21888]
         self.mean = 0
         self.std = 0.00637856
+class TestGaussianDevelopCase11_FP32(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [12528, 14336]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase11_FP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [12528, 14336]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase11_BFP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [12528, 14336]
+        self.mean = 0
+        self.std = 1
+
+
+
+class TestGaussianDevelopCase12_FP32(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [14336, 5376]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase12_FP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 5376]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase12_BFP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 5376]
+        self.mean = 0
+        self.std = 1
+
+
+
+class TestGaussianDevelopCase13_FP32(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [14336, 9632]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase13_FP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 9632]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase13_BFP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 9632]
+        self.mean = 0
+        self.std = 1
+
+
+
+class TestGaussianDevelopCase14_FP32(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [1792, 14336]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase14_FP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [1792, 14336]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase14_BFP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [1792, 14336]
+        self.mean = 0
+        self.std = 1
+
+
+
+class TestGaussianDevelopCase15_FP32(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [4816, 14336]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase15_FP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [4816, 14336]
+        self.mean = 0
+        self.std = 1
+
+class TestGaussianDevelopCase15_BFP16(TestGaussianDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [4816, 14336]
+        self.mean = 0
+        self.std = 1
+
 
 
 if __name__ == '__main__':

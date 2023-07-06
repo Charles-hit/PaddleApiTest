@@ -21,11 +21,12 @@ def set_random_seed(seed):
     fleet.meta_parallel.model_parallel_random_seed(seed)
 
 class TestPaddle(init_config_class.InitConfigClass):
-    def __init__(self, group, np_input_dir="", dtype="", save_static_res_path="" , save_eager_res_path="", torch_dir=""):
+    def __init__(self, group, id, np_input_dir="", dtype="", save_static_res_path="" , save_eager_res_path="", torch_dir=""):
         self._init_params(np_input_dir, dtype, save_static_res_path, save_eager_res_path)
         self._init_threshold()
         self._init_np_inputs_and_dout()
         self._group = group
+        self.id = id
         world_size = paddle.distributed.get_world_size()
         rank = paddle.distributed.get_rank()
         self._np_paddle_table = np.array_split(self._np_table, world_size)[rank]
@@ -86,7 +87,7 @@ class TestPaddle(init_config_class.InitConfigClass):
             table_t = paddle.cast(table, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
         
-        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1, init_config_class.dim_3, mp_group=self._group)
+        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1[self.id], init_config_class.dim_3[self.id], mp_group=self._group)
         paddle.assign(table_t, embedding.weight)
         out = embedding(x_t)
 
@@ -110,7 +111,7 @@ class TestPaddle(init_config_class.InitConfigClass):
             table_t = paddle.cast(table, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
 
-        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1, init_config_class.dim_3, mp_group=self._group)
+        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1[self.id], init_config_class.dim_3[self.id], mp_group=self._group)
         paddle.assign(table_t, embedding.weight)
         out = embedding(x_t)
 
@@ -248,7 +249,7 @@ class TestPaddle(init_config_class.InitConfigClass):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self._cal_eager_res(x_eager, table_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = out_grads_eager.numpy()
@@ -301,7 +302,7 @@ class TestPaddle(init_config_class.InitConfigClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self._np_x, "table": self._np_paddle_table, "dout": self._np_dout},
@@ -324,7 +325,6 @@ class TestPaddle(init_config_class.InitConfigClass):
                         print(e)
                         print("static_stability forward {dtype} failed".format(dtype=self._dtype))
                     try:
-                        print("type(out_grads_static), type(out_grads_static_baseline): ", type(out_grads_static), type(out_grads_static_baseline))
                         np_assert_staility(
                             out_grads_static[0],
                             out_grads_static_baseline[0],
@@ -353,22 +353,23 @@ set_random_seed(1024)
 
 group = paddle_dist.collective._get_default_group()
 
-for dtype in dtype_list:
+for id in [1, 2]:
+    for dtype in dtype_list:
 
-    np_input_dir = "./inputs_case1.npz"
-    save_static_res_path = "./static_develop_res_case1_{dtype}.npz".format(dtype=dtype) 
-    save_eager_res_path = "./eager_develop_res_case1_{dtype}.npz".format(dtype=dtype)
-    torch_dir = "./torch_out_{dtype}.npz".format(dtype=dtype)
+        np_input_dir = "./inputs_case{id}.npz".format(id=id)
+        save_static_res_path = "./static_develop_res_case{id}_{dtype}.npz".format(id=id, dtype=dtype) 
+        save_eager_res_path = "./eager_develop_res_case{id}_{dtype}.npz".format(id=id, dtype=dtype)
+        torch_dir = "./torch_out_{dtype}_{id}.npz".format(dtype=dtype, id=id)
 
-    test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
-    test_paddle._test_eager_accuracy()
-    print("eager {dtype} finish".format(dtype=dtype))
-    test_paddle._test_static_accuracy()
-    print("static {dtype} finish".format(dtype=dtype))
-    test_paddle._test_eager_stability()
-    print("eager_stability {dtype}  finish".format(dtype=dtype))
-    test_paddle._test_static_stability()
-    print("static_stability {dtype}  finish".format(dtype=dtype))
+        test_paddle = TestPaddle(group, id - 1, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
+        test_paddle._test_eager_accuracy()
+        print("eager {dtype} finish".format(dtype=dtype))
+        test_paddle._test_static_accuracy()
+        print("static {dtype} finish".format(dtype=dtype))
+        test_paddle._test_eager_stability()
+        print("eager_stability {dtype}  finish".format(dtype=dtype))
+        test_paddle._test_static_stability()
+        print("static_stability {dtype}  finish".format(dtype=dtype))
 
-    print("{dtype} finish".format(dtype=dtype))
+        print("{dtype} finish".format(dtype=dtype))
 

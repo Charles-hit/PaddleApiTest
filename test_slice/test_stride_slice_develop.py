@@ -346,6 +346,16 @@ class TestStrideSliceDevelopCase1_BFP16(TestStrideSliceDevelopCase1_FP32):
 
 
 class TestStrideSliceDevelopCase2_FP32(TestStrideSliceDevelopCase1_FP32):
+
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 14, 64]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
     def cal_torch_res(self, x, dout):
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.bfloat16)
@@ -390,6 +400,59 @@ class TestStrideSliceDevelopCase2_BFP16(TestStrideSliceDevelopCase2_FP32):
         self.dtype = "bfloat16"
 
 
+class TestStrideSliceDevelopCase3_FP32(TestStrideSliceDevelopCase1_FP32):
+
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 14, 64]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+    def cal_torch_res(self, x, dout):
+        if self.dtype == "bfloat16":
+            x = x.to(dtype=torch.bfloat16)
+            dout = dout.to(dtype=torch.bfloat16)
+        out = x[:,:,:,1::2]
+        out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout])
+        if self.dtype == "bfloat16":
+            out = out.to(dtype=torch.float32)
+            out_grads = map_structure(lambda x: x.to(dtype=torch.float32), out_grads)
+        return out, out_grads
+
+    def cal_eager_res(self, x, dout):
+        if self.dtype == "bfloat16":
+            x = paddle.cast(x, dtype="uint16")
+            dout = paddle.cast(dout, dtype="uint16")
+        out = x[:,:,:,1::2]
+        out_grads = paddle.grad([out], [x], grad_outputs=[dout])
+        if self.dtype == "bfloat16":
+            out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
+        return out, out_grads
+
+    def cal_static_res(self, x, dout):
+        if self.dtype == "bfloat16":
+            x = paddle.cast(x, dtype="uint16")
+            dout = paddle.cast(dout, dtype="uint16")
+        out = x[:,:,:,1::2]
+        out_grads = paddle.static.gradients(
+            [out], [x], target_gradients=[dout]
+        )
+        if self.dtype == "bfloat16":
+            out = paddle.cast(out, dtype="float32")
+            out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
+        return out, out_grads
+
+class TestStrideSliceDevelopCase3_FP16(TestStrideSliceDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestStrideSliceDevelopCase3_BFP16(TestStrideSliceDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
         
 if __name__ == '__main__':
     unittest.main()

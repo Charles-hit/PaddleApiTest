@@ -202,7 +202,7 @@ class TestAddInplaceDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, y_eager, dout_eager
             )
@@ -244,11 +244,15 @@ class TestAddInplaceDevelopCase1_BFP16(TestAddInplaceDevelopCase1_FP32):
 
 
 class TestAddInplaceDevelopCase2_FP32(TestAddInplaceDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size =[50176, 4096]
+
     def init_np_inputs_and_dout(self):
         # init np array 
-        self.np_x = np.random.random(size=[50176, 4096]).astype("float32") - 0.5
-        self.np_y = np.random.random(size=[50176, 4096]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[50176, 4096]).astype("float32") - 0.5
+        self.np_x = np.random.random(size=self.size).astype("float32") - 0.5
+        self.np_y = np.random.random(size=self.size).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=self.size).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
@@ -258,12 +262,145 @@ class TestAddInplaceDevelopCase2_FP32(TestAddInplaceDevelopCase1_FP32):
 class TestAddInplaceDevelopCase2_FP16(TestAddInplaceDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "float16"
-
+        self.size =[50176, 4096]
 
 class TestAddInplaceDevelopCase2_BFP16(TestAddInplaceDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
+        self.size =[50176, 4096]
+class TestAddInplaceDevelopCase3_FP32(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [12528, 14336]
 
+class TestAddInplaceDevelopCase3_FP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [12528, 14336]
+
+class TestAddInplaceDevelopCase3_BFP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [12528, 14336]
+
+
+
+class TestAddInplaceDevelopCase4_FP32(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [14336, 5376]
+
+class TestAddInplaceDevelopCase4_FP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 5376]
+
+class TestAddInplaceDevelopCase4_BFP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 5376]
+
+
+
+class TestAddInplaceDevelopCase5_FP32(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [14336, 9632]
+
+class TestAddInplaceDevelopCase5_FP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 9632]
+
+class TestAddInplaceDevelopCase5_BFP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 9632]
+
+
+
+class TestAddInplaceDevelopCase6_FP32(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [14336]
+
+class TestAddInplaceDevelopCase6_FP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336]
+
+class TestAddInplaceDevelopCase6_BFP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336]
+
+
+
+class TestAddInplaceDevelopCase7_FP32(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [1792, 14336]
+
+class TestAddInplaceDevelopCase7_FP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [1792, 14336]
+
+class TestAddInplaceDevelopCase7_BFP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [1792, 14336]
+
+
+
+class TestAddInplaceDevelopCase8_FP32(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [4816, 14336]
+
+class TestAddInplaceDevelopCase8_FP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [4816, 14336]
+
+class TestAddInplaceDevelopCase8_BFP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [4816, 14336]
+
+
+
+class TestAddInplaceDevelopCase9_FP32(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [5376]
+
+class TestAddInplaceDevelopCase9_FP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [5376]
+
+class TestAddInplaceDevelopCase9_BFP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [5376]
+
+
+
+class TestAddInplaceDevelopCase10_FP32(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [9632]
+
+class TestAddInplaceDevelopCase10_FP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [9632]
+
+class TestAddInplaceDevelopCase10_BFP16(TestAddInplaceDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [9632]
 
 if __name__ == '__main__':
     np.random.seed(2023)

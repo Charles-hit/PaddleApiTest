@@ -43,9 +43,16 @@ def np_assert_accuracy(
     eager_or_static_mode,
     fwd_or_bkd,
     api,
-):
+):  
     max_atol_idx = np.argmax(np.abs(np_a - np_b))
-    max_rtol_idx = np.argmax(np.abs((np_a - np_b) / np_a))
+    np_a_flatten = np_a.flatten()
+    np_b_flatten = np_b.flatten()
+    sub_res = np_a_flatten - np_b_flatten
+    nonzero_idx = np.nonzero(np_b_flatten)
+    sub_res = sub_res.take(nonzero_idx)
+    np_b_flatten_nonzero = np_b_flatten.take(nonzero_idx).flatten()
+    np_a_flatten_nonzero = np_a_flatten.take(nonzero_idx).flatten()
+    max_rtol_idx = np.argmax(np.abs(sub_res / np_b_flatten_nonzero))
     np.testing.assert_allclose(
         np_a,
         np_b,
@@ -60,19 +67,17 @@ def np_assert_accuracy(
                 version_b=version_b,
                 dtype=dtype,
             )
-            + 'max_atol_idx: {max_atol_idx}, {version_a}_value: {value_a}, {version_b}_value: {value_b},\n'.format(
-                max_atol_idx=max_atol_idx,
+            + 'max_atol value, {version_a}_value: {value_a}, {version_b}_value: {value_b},\n'.format(
                 version_a=version_a,
-                value_a=str(np_a.flatten()[max_atol_idx].item()),
+                value_a=str(np_a_flatten[max_atol_idx].item()),
                 version_b=version_b,
-                value_b=str(np_b.flatten()[max_atol_idx].item()),
+                value_b=str(np_b_flatten[max_atol_idx].item()),
             )
-            + 'max_rtol_idx: {max_rtol_idx}, {version_a}_value: {value_a}, {version_b}_value: {value_b},\n'.format(
-                max_rtol_idx=max_rtol_idx,
+            + 'max_rtol value , {version_a}_value: {value_a}, {version_b}_value: {value_b},\n'.format(
                 version_a=version_a,
-                value_a=str(np_a.flatten()[max_rtol_idx].item()),
+                value_a=str(np_a_flatten_nonzero[max_rtol_idx].item()),
                 version_b=version_b,
-                value_b=str(np_b.flatten()[max_rtol_idx].item()),
+                value_b=str(np_b_flatten_nonzero[max_rtol_idx].item()),
             )
         ),
     )
@@ -88,7 +93,14 @@ def np_assert_staility(
     api,
 ):
     max_atol_idx = np.argmax(np.abs(np_actual - np_baseline))
-    max_rtol_idx = np.argmax(np.abs((np_actual - np_baseline) / np_actual))
+    np_actual_flatten = np_actual.flatten()
+    np_baseline_flatten = np_baseline.flatten()
+    sub_res = np_actual_flatten - np_baseline_flatten
+    nonzero_idx = np.nonzero(np_baseline_flatten)
+    sub_res = sub_res.take(nonzero_idx)
+    np_baseline_flatten_nonzero = np_baseline_flatten.take(nonzero_idx).flatten()
+    np_actual_flatten_nonzero = np_actual_flatten.take(nonzero_idx).flatten()
+    max_rtol_idx = np.argmax(np.abs(sub_res / np_baseline_flatten_nonzero))
     np.testing.assert_equal(
         np_actual,
         np_baseline,
@@ -99,17 +111,15 @@ def np_assert_staility(
                 version=version,
                 dtype=dtype,
             )
-            + 'max_atol_idx: {max_atol_idx}, {version}_value: {actual_value}, {version}_baseline_value: {baseline_value}, \n'.format(
-                max_atol_idx=max_atol_idx,
+            + 'max_atol value, {version}_value: {actual_value}, {version}_baseline_value: {baseline_value}, \n'.format(
                 version=version,
-                actual_value=str(np_actual.flatten()[max_atol_idx].item()),
-                baseline_value=str(np_baseline.flatten()[max_atol_idx].item()),
+                actual_value=str(np_actual_flatten[max_atol_idx].item()),
+                baseline_value=str(np_baseline_flatten[max_atol_idx].item()),
             )
-            + 'max_rtol_idx: {max_rtol_idx}, {version}_value: {actual_value}, {version}_baseline_value: {baseline_value}, \n'.format(
-                max_rtol_idx=max_rtol_idx,
+            + 'max_rtol value,  {version}_value: {actual_value}, {version}_baseline_value: {baseline_value}, \n'.format(
                 version=version,
-                actual_value=str(np_actual.flatten()[max_rtol_idx].item()),
-                baseline_value=str(np_baseline.flatten()[max_rtol_idx].item()),
+                actual_value=str(np_actual_flatten_nonzero[max_rtol_idx].item()),
+                baseline_value=str(np_baseline_flatten_nonzero[max_rtol_idx].item()),
             )
         ),
     )

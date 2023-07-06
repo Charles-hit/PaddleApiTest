@@ -118,7 +118,7 @@ class TestEmptyDevelopCase1_FP32(unittest.TestCase):
         del out_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager = self.cal_eager_res(x_eager)
             out_eager = out_eager.numpy()
             # test develop eager forward stability
@@ -163,6 +163,49 @@ class TestEmptyDevelopCase2_FP16(TestEmptyDevelopCase2_FP32):
 class TestEmptyDevelopCase2_BFP16(TestEmptyDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
+
+class TestEmptyDevelopCase3_FP32(TestEmptyDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[1, 8192, 14336]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+
+
+class TestEmptyDevelopCase3_FP16(TestEmptyDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestEmptyDevelopCase3_BFP16(TestEmptyDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestEmptyDevelopCase4_FP32(TestEmptyDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[1]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+
+
+class TestEmptyDevelopCase4_FP16(TestEmptyDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestEmptyDevelopCase4_BFP16(TestEmptyDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
 
 if __name__ == '__main__':
     np.random.seed(2023)

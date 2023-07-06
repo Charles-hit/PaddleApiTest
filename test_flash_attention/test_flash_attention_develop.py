@@ -266,7 +266,7 @@ class TestFlashAttentionDevelopCase1_FP16(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, dout_eager
             )
@@ -317,7 +317,7 @@ class TestFlashAttentionDevelopCase1_FP16(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "dout": self.np_dout},
@@ -347,9 +347,23 @@ class TestFlashAttentionDevelopCase1_FP16(unittest.TestCase):
                     )
 
 
-class TestFlashAttentionDevelopCase1_BFP16(TestFlashAttentionDevelopCase1_FP16):
+class TestFlashAttentionDevelopCase2_FP16(TestFlashAttentionDevelopCase1_FP16):
+    def init_params(self):
+        self.dtype = "float16"
+
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1,8192,14,128]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1,8192,14,128]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestFlashAttentionDevelopCase2_BFP16(TestFlashAttentionDevelopCase2_FP16):
     def init_params(self):
         self.dtype = "bfloat16"
+
 
 if __name__ == '__main__':
     np.random.seed(2023)

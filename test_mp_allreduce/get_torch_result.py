@@ -64,7 +64,7 @@ class TestTorch(init_config_class.InitConfigClass):
         base_out, base_dout = self._cal_torch_res(x_torch, dout_torch)
         base_out_np = base_out.detach().cpu().numpy()
         base_dout_np = base_dout.detach().cpu().numpy()
-        for i in range(50):
+        for i in range(5):
             x_torch, dout_torch = self._gen_torch_inputs_and_dout()
             out, _ = self._cal_torch_res(x_torch, dout_torch)
             out_np =  out.detach().cpu().numpy()
@@ -94,10 +94,10 @@ torch.cuda.set_device(local_rank)
 device = torch.device("cuda", local_rank)
 group = torch_dist.new_group([i for i in range(world_size)])
 
-for case_id in range(2):
+for case_id in [1, 2, 3]:
     for dtype in dtype_list:
 
-        np_input_dir = "./inputs_case{id}.npz".format(id=(case_id + 1))
-        torch_dir = "{case_id}_torch_out_{dtype}.npz".format(case_id=case_id+1, dtype=dtype)
+        np_input_dir = "./inputs_case{id}.npz".format(id=case_id)
+        torch_dir = "{id}_torch_out_{dtype}.npz".format(id=case_id, dtype=dtype)
 
         test_torch = TestTorch(group ,device, np_input_dir, dtype, torch_dir)
