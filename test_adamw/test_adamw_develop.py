@@ -24,7 +24,7 @@ import torch
 
 import paddle
 from paddle.utils import map_structure
-
+sys.path.append("..")
 from utils import (
     TOLERANCE,
     convert_dtype_to_torch_type,
@@ -359,8 +359,8 @@ class TestAdamWDevelopCase1_FP32(unittest.TestCase):
 test_shape = [[1], [4096], [50176, 8192], [2048, 4096], [4096, 10944],
                     [10944], [5472, 4096], [50176, 4096], [6144], 
                     [8192, 12288], [12288], [4096, 8192], [4096, 6144],
-                    [8192, 21888], [21888], [10944, 8192], [8192]]
-
+                    [8192, 21888], [21888], [10944, 8192], [8192],
+                    [12528, 14336], [5376], [1792, 14336], [14336], [14336, 9632], [9632], [4816, 14336],  [14336, 5376]]
 class TestAdamWDevelopCase1_FP16(TestAdamWDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
@@ -596,6 +596,126 @@ class TestAdamWDevelopCase16_BFP16(TestAdamWDevelopCase1_FP32):
         self.dtype = "bfloat16"
         self.shapes = test_shape[16]
 
+class TestAdamWDevelopCase17_FP32(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shapes = test_shape[17]
+
+class TestAdamWDevelopCase17_FP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shapes = test_shape[17]
+
+class TestAdamWDevelopCase17_BFP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.shapes = test_shape[17]
+
+class TestAdamWDevelopCase18_FP32(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shapes = test_shape[18]
+
+class TestAdamWDevelopCase18_FP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shapes = test_shape[18]
+
+class TestAdamWDevelopCase18_BFP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.shapes = test_shape[18]
+
+class TestAdamWDevelopCase19_FP32(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shapes = test_shape[19]
+
+class TestAdamWDevelopCase19_FP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shapes = test_shape[19]
+
+class TestAdamWDevelopCase19_BFP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.shapes = test_shape[19]
+
+class TestAdamWDevelopCase20_FP32(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shapes = test_shape[20]
+
+class TestAdamWDevelopCase20_FP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shapes = test_shape[20]
+
+class TestAdamWDevelopCase20_BFP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.shapes = test_shape[20]
+
+class TestAdamWDevelopCase21_FP32(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shapes = test_shape[21]
+
+class TestAdamWDevelopCase21_FP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shapes = test_shape[21]
+
+class TestAdamWDevelopCase21_BFP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.shapes = test_shape[21]
+
+class TestAdamWDevelopCase22_FP32(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shapes = test_shape[22]
+
+class TestAdamWDevelopCase22_FP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shapes = test_shape[22]
+
+class TestAdamWDevelopCase22_BFP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.shapes = test_shape[22]
+
+class TestAdamWDevelopCase23_FP32(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shapes = test_shape[23]
+
+class TestAdamWDevelopCase23_FP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shapes = test_shape[23]
+
+class TestAdamWDevelopCase23_BFP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.shapes = test_shape[23]
+
+class TestAdamWDevelopCase24_FP32(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shapes = test_shape[24]
+
+class TestAdamWDevelopCase24_FP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shapes = test_shape[24]
+
+class TestAdamWDevelopCase24_BFP16(TestAdamWDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.shapes = test_shape[24]
+    
 if __name__ == '__main__':
     np.random.seed(2023)
     unittest.main()

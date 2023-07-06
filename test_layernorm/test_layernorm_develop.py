@@ -24,9 +24,15 @@ def generate_np_inputs_and_dout():
     bias_case3 = np.random.random(size=[12288]).astype("float32") - 0.5
     dout_case3 = np.random.random(size=[1, 4096, 12288]).astype("float32") - 0.5
 
+    x_case4 = np.random.random(size=[1, 8192, 14336]).astype("float32") - 0.5
+    weight_case4 = np.random.random(size=[14336]).astype("float32") - 0.5
+    bias_case4 = np.random.random(size=[14336]).astype("float32") - 0.5
+    dout_case4 = np.random.random(size=[1, 8192, 14336]).astype("float32") - 0.5
+
     np.savez("./inputs_case1.npz", x = x_case1, weight = weight_case1, bias = bias_case1, dout = dout_case1)
     np.savez("./inputs_case2.npz", x = x_case2, weight = weight_case2, bias = bias_case2, dout = dout_case2)
     np.savez("./inputs_case3.npz", x = x_case3, weight = weight_case3, bias = bias_case3, dout = dout_case3)
+    np.savez("./inputs_case4.npz", x = x_case4, weight = weight_case4, bias = bias_case4, dout = dout_case4)
 
 
 class TestLayerNormDevelopCase1_FP32(unittest.TestCase):
@@ -464,6 +470,34 @@ class TestLayerNormDevelopCase3_BFP16(TestLayerNormDevelopCase1_FP32):
         self.dtype = "bfloat16"
         self.save_static_res_path = "./static_develop_res_case3_bf16.npz"
         self.save_eager_res_path = "./eager_develop_res_case3_bf16.npz"
+
+
+class TestLayerNormDevelopCase4_FP32(TestLayerNormDevelopCase1_FP32):
+    def init_params(self):        
+        self.np_input_dir = "./inputs_case4.npz"
+        self.epsilon = 1e-12
+        self.begin_norm_axis = 2
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case4_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_fp32.npz"
+        
+class TestLayerNormDevelopCase4_FP16(TestLayerNormDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.epsilon = 1e-12
+        self.begin_norm_axis = 2
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case4_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_fp16.npz"
+
+class TestLayerNormDevelopCase4_BFP16(TestLayerNormDevelopCase1_FP32):
+    def init_params(self):        
+        self.np_input_dir = "./inputs_case4.npz"
+        self.epsilon = 1e-12
+        self.begin_norm_axis = 2
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case4_bf16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_bf16.npz"
 
         
 if __name__ == '__main__':
