@@ -3,9 +3,11 @@ import sys
 sys.path.append("..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
-dim_1 = 56200
-dim_2 = 4096
-dim_3 = 12288
+card_num = 8
+
+dim_1 = [56200, 31250 * card_num]
+dim_2 = [4096, 8192]
+dim_3 = [12288, 14336]
 
 class InitConfigClass:
     def __init__(self):

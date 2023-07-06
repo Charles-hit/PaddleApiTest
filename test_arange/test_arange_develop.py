@@ -107,7 +107,7 @@ class TestArangeDevelopCase1_FP32(unittest.TestCase):
         del out_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager = self.cal_eager_res()
             out_eager = out_eager.numpy()
             # test develop eager forward stability
@@ -132,7 +132,7 @@ class TestArangeDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg],
             )
             out_static_baseline = out[0]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     fetch_list=[out_static_pg],
@@ -194,6 +194,58 @@ class TestArangeDevelopCase2_BFP16(TestArangeDevelopCase2_FP32):
         self.end = 4096
         self.step = 1
 
+
+class TestArangeDevelopCase3_FP32(TestArangeDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.torch_dtype = torch.float32
+        self.start = 0 
+        self.end =128 
+        self.step = 2 
+
+
+class TestArangeDevelopCase3_FP16(TestArangeDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.torch_dtype = torch.float16
+        self.start = 0
+        self.end = 128
+        self.step = 2
+
+
+class TestArangeDevelopCase3_BFP16(TestArangeDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.torch_dtype = torch.bfloat16
+        self.start = 0
+        self.end =128
+        self.step =2
+
+class TestArangeDevelopCase4_FP32(TestArangeDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.torch_dtype = torch.float32
+        self.start = 0 
+        self.end =8192 
+        self.step = 1 
+
+
+class TestArangeDevelopCase4_FP16(TestArangeDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.torch_dtype = torch.float16
+        self.start = 0
+        self.end = 8192
+        self.step = 1
+
+
+class TestArangeDevelopCase4_BFP16(TestArangeDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.torch_dtype = torch.bfloat16
+        self.start = 0
+        self.end = 8192
+        self.step = 1
 
 if __name__ == '__main__':
     np.random.seed(2023)

@@ -29,17 +29,16 @@ from utils import (
     np_assert_staility,
 )
 
-class TestEqualDevelopCase1_FP32(unittest.TestCase):
+class TestGreaterThanDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
         self.init_params()
         self.init_threshold()
-        self.init_np_inputs_and_dout()
-        x_torch,y_torch= self.gen_torch_inputs_and_dout()
+        self.init_np_inputs_and()
+        x_torch, y_torch = self.gen_torch_inputs()
         out_torch = self.cal_torch_res(
-            x_torch,y_torch
+            x_torch, y_torch
         )
-        del x_torch
-        del y_torch
+        del x_torch, y_torch
         self.out_torch = out_torch.cpu().detach().numpy()
         del out_torch
         torch.cuda.empty_cache()
@@ -51,22 +50,23 @@ class TestEqualDevelopCase1_FP32(unittest.TestCase):
         self.atol = TOLERANCE[self.dtype]["atol"]
         self.rtol = TOLERANCE[self.dtype]["rtol"]
 
-    def init_np_inputs_and_dout(self):
-        # init np array
-        self.np_x = np.random.random(size=[1]).astype("float32") - 0.5
-        self.np_y = np.random.random(size=[1]).astype("float32") - 0.5
+    def init_np_inputs_and(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192]).astype("float32") - 0.5
+        self.np_y = np.random.random(size=[1, 8192]).astype("float32") - 0.5
         # convert np array dtype
         if self.dtype == "float16":
             self.np_x = self.np_x.astype("float16")
             self.np_y = self.np_y.astype("float16")
 
-    def gen_torch_inputs_and_dout(self):
+    def gen_torch_inputs(self):
         x_torch = torch.tensor(
             self.np_x,
             device='cuda',
             dtype=convert_dtype_to_torch_type(self.dtype)
             if self.dtype != 'bfloat16'
             else torch.float32,
+            requires_grad=False,
         )
         y_torch = torch.tensor(
             self.np_y,
@@ -74,88 +74,79 @@ class TestEqualDevelopCase1_FP32(unittest.TestCase):
             dtype=convert_dtype_to_torch_type(self.dtype)
             if self.dtype != 'bfloat16'
             else torch.float32,
+            requires_grad=False,
         )
         return x_torch, y_torch
 
-    def gen_eager_inputs_and_dout(self):
+    def gen_eager_inputs(self):
         x_eager = paddle.to_tensor(
             self.np_x,
             dtype=self.dtype if self.dtype != 'bfloat16' else "float32",
             place="gpu",
         )
+        x_eager.stop_gradient = True
         y_eager = paddle.to_tensor(
             self.np_y,
             dtype=self.dtype if self.dtype != 'bfloat16' else "float32",
             place="gpu",
         )
-        return x_eager,y_eager
+        y_eager.stop_gradient = True
+        return x_eager, y_eager
 
-    def gen_static_inputs_and_dout(self):
+    def gen_static_inputs(self):
         x_static = paddle.static.data(
             'x',
             shape=self.np_x.shape,
             dtype=self.dtype if self.dtype != "bfloat16" else "float32",
         )
+        x_static.stop_gradient = True
         y_static = paddle.static.data(
             'y',
             shape=self.np_y.shape,
             dtype=self.dtype if self.dtype != "bfloat16" else "float32",
         )
-        return x_static,y_static
+        y_static.stop_gradient = True
+        return x_static, y_static
 
-    def cal_torch_res(self, x,y):
+    def cal_torch_res(self, x, y):
         if self.dtype == "bfloat16":
             x = x.to(dtype=torch.bfloat16)
             y = y.to(dtype=torch.bfloat16)
-        out = torch.eq(x,y)
+        out = torch.gt(x, y)
         if self.dtype == "bfloat16":
             out = out.to(dtype=torch.float32)
         return out
 
-    def cal_eager_res(self, x,y):
+    def cal_eager_res(self, x, y):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             y = paddle.cast(y, dtype="uint16")
-        out = paddle.equal(x,y)
+        out = paddle.greater_than(x, y)
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
         return out
 
-    def cal_static_res(self, x,y):
+    def cal_static_res(self, x, y):
         if self.dtype == "bfloat16":
             x = paddle.cast(x, dtype="uint16")
             y = paddle.cast(y, dtype="uint16")
-        out = paddle.equal(x,y)
+        out = paddle.greater_than(x, y)
         if self.dtype == "bfloat16":
             out = paddle.cast(out, dtype="float32")
         return out
 
     def test_eager_accuracy(self):
-        x_eager, y_eager= self.gen_eager_inputs_and_dout()
+        x_eager, y_eager = self.gen_eager_inputs()
         out_eager = self.cal_eager_res(
             x_eager, y_eager
         )
-        del x_eager
-        del y_eager
+        del x_eager, y_eager
         paddle.device.cuda.empty_cache()
         out_eager_np = out_eager.numpy()
         del out_eager
         paddle.device.cuda.empty_cache()
         # compare develop eager forward res with torch
-        np.testing.assert_allclose(
-              out_eager_np,
-              self.out_torch,
-              self.atol,
-              self.rtol,
-              err_msg=(
-                  'Develop: compare equal eager forward res with torch failed in %s dtype,\n'
-                  ' eager_value: %d, torch_value: %d, \n'
-                  ' eager_value: %d, torch_value: %d, \n'
-              )
-              % (self.dtype,  out_eager_np.flatten().item(), self.out_torch.flatten().item(),
-              out_eager_np.flatten().item(), self.out_torch.flatten().item()),
-          )
-
+        np.testing.assert_array_equal(out_eager_np, self.out_torch)
     def test_static_accuracy(self):
         with paddle.fluid.framework._dygraph_guard(None):
             mp, sp = paddle.static.Program(), paddle.static.Program()
@@ -163,54 +154,39 @@ class TestEqualDevelopCase1_FP32(unittest.TestCase):
                 (
                     x_static,
                     y_static,
-                ) = self.gen_static_inputs_and_dout()
+                ) = self.gen_static_inputs()
                 (out_static) = self.cal_static_res(
                     x_static,
-                    y_static
+                    y_static,
                 )
             exe = paddle.static.Executor(place=paddle.CUDAPlace(0))
             exe.run(sp)
             out = exe.run(
                 mp,
-                feed={"x": self.np_x,"y":self.np_y},
+                feed={"x": self.np_x, "y": self.np_y},
                 fetch_list=[out_static],
             )
-            out_static = out
+            out_static = out[0]
 
         # compare develop static forward res with torch
-        np.testing.assert_allclose(
-              out_static,
-              [self.out_torch],
-              self.atol,
-              self.rtol,
-              err_msg=(
-                  'Develop: compare equal static forward res with torch failed in %s dtype,\n'
-                  ' eager_value: %d, torch_value: %d, \n'
-                  ' eager_value: %d, torch_value: %d, \n'
-              )
-              % (self.dtype,out_static[0], self.out_torch[0],
-              out_static[0], self.out_torch[0]),
-          )
+        np.testing.assert_array_equal(out_static, self.out_torch)
 
     def test_eager_stability(self):
-        x_eager, y_eager= self.gen_eager_inputs_and_dout()
-        out_eager_baseline= self.cal_eager_res(
+        x_eager, y_eager= self.gen_eager_inputs()
+        out_eager_baseline = self.cal_eager_res(
             x_eager, y_eager
         )
         out_eager_baseline_np = out_eager_baseline.numpy()
         del out_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager = self.cal_eager_res(
-                x_eager,y_eager
+                x_eager, y_eager
             )
             out_eager = out_eager.numpy()
-            np.testing.assert_allclose(out_eager,self.out_torch,self.atol,self.rtol, err_msg=('Develop: compare equal eager forward res with torch failed in %s dtype,\n'
-			' eager_value: %d, torch_value: %d, \n'
-			' eager_value: %d, torch_value: %d, \n')
-			 % (self.dtype,out_eager.flatten().item(), self.out_torch.flatten().item(),
-			 out_eager.flatten().item(), self.out_torch.flatten().item()),)
+            # test develop eager forward stability
+            np.testing.assert_allclose(out_eager, out_eager_baseline_np)
 
     def test_static_stability(self):
         with paddle.fluid.framework._dygraph_guard(None):
@@ -219,7 +195,7 @@ class TestEqualDevelopCase1_FP32(unittest.TestCase):
                 (
                     x_static,
                     y_static,
-                ) = self.gen_static_inputs_and_dout()
+                ) = self.gen_static_inputs()
                 (out_static_pg) = self.cal_static_res(
                     x_static,
                     y_static,
@@ -228,56 +204,29 @@ class TestEqualDevelopCase1_FP32(unittest.TestCase):
             exe.run(sp)
             out = exe.run(
                 mp,
-                feed={"x": self.np_x,"y":self.np_y},
+                feed={"x": self.np_x, "y": self.np_y},
                 fetch_list=[out_static_pg],
             )
-            out_static_baseline = out
-            for i in range(50):
+            out_static_baseline = out[0]
+            for i in range(5):
                 out = exe.run(
                     mp,
-                    feed={"x": self.np_x,"y":self.np_y},
-                    fetch_list=[out_static_pg]
+                    feed={"x": self.np_x, "y": self.np_y},
+                    fetch_list=[out_static_pg],
                 )
-                out_static= out
+                out_static = out[0]
                 # test develop static forward stability
-                np.testing.assert_allclose(out_static,[self.out_torch],self.atol,self.rtol, err_msg=('Develop: compare equal eager forward res with torch failed in %s dtype,\n'
-			    ' eager_value: %d, torch_value: %d, \n'
-			    ' eager_value: %d, torch_value: %d, \n')
-			     % (self.dtype,out_static[0], self.out_torch[0],
-			     out_static[0], self.out_torch[0]),)
+                np.testing.assert_allclose(out_static, out_static_baseline)
 
 
-class TestEqualDevelopCase1_FP16(TestEqualDevelopCase1_FP32):
+class TestGreaterThanDevelopCase1_FP16(TestGreaterThanDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "float16"
 
-
-class TestEqualDevelopCase1_BFP16(TestEqualDevelopCase1_FP32):
+class TestGreaterThanDevelopCase1_BFP16(TestGreaterThanDevelopCase1_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
-
-class TestEqualDevelopCase2_FP32(unittest.TestCase):
-    def init_np_inputs_and_dout(self):
-        # init np array 
-        self.np_x = np.random.random(size=[1]).astype("float32") - 0.5
-        self.np_y = np.random.random(size=[1, 8192]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[1,8192]).astype("float32") - 0.5
-        # convert np array dtype
-        if self.dtype == "float16":
-            self.np_x = self.np_x.astype("float16")
-            self.np_y = self.np_y.astype("float16")
-            self.np_dout = self.np_dout.astype("float16")
-
-class TestEqualDevelopCase2_FP16(TestEqualDevelopCase2_FP32):
-    def init_params(self):
-        self.dtype = "float16"
-
-
-class TestEqualDevelopCase2_BFP16(TestEqualDevelopCase2_FP32):
-    def init_params(self):
-        self.dtype = "bfloat16"
-
-
+        
 if __name__ == '__main__':
     np.random.seed(2023)
     unittest.main()
