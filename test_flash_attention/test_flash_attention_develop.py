@@ -347,18 +347,23 @@ class TestFlashAttentionDevelopCase1_FP16(unittest.TestCase):
                     )
 
 
-class TestFlashAttentionDevelopCase1_BFP16(TestFlashAttentionDevelopCase1_FP16):
+class TestFlashAttentionDevelopCase2_FP16(TestFlashAttentionDevelopCase1_FP16):
     def init_params(self):
-        self.dtype = "bfloat16"
+        self.dtype = "float16"
 
     def init_np_inputs_and_dout(self):
         # init np array 
         self.np_x = np.random.random(size=[1,8192,14,128]).astype("float32") - 0.5
         self.np_dout = np.random.random(size=[1,8192,14,128]).astype("float32") - 0.5
         # convert np array dtype
-        if self.dtype != "float32":
-            self.np_x = self.np_x.astype(self.dtype)
-            self.np_dout = self.np_dout.astype(self.dtype)
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestFlashAttentionDevelopCase2_BFP16(TestFlashAttentionDevelopCase2_FP16):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
 
 if __name__ == '__main__':
     np.random.seed(2023)
