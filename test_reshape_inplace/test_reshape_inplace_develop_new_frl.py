@@ -302,11 +302,11 @@ class TestReshapeInplaceDevelopCase10_FP32(TestReshapeInplaceDevelopCase1_FP32):
             self.np_x = self.np_x.astype("float16")
             self.np_dout = self.np_dout.astype("float16")
 
-class TestReshapeInplaceDevelopCase9_FP16(TestReshapeInplaceDevelopCase10_FP32):
+class TestReshapeInplaceDevelopCase10_FP16(TestReshapeInplaceDevelopCase10_FP32):
     def init_params(self):
         self.dtype = "float16"
 
-class TestReshapeInplaceDevelopCase9_BFP16(TestReshapeInplaceDevelopCase10_FP32):
+class TestReshapeInplaceDevelopCase10_BFP16(TestReshapeInplaceDevelopCase10_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
