@@ -332,6 +332,31 @@ class TestSinDevelopCase1_BFP16(TestSinDevelopCase1_FP32):
         self.dtype = "bfloat16"
 
 
+class TestSinDevelopCase2_FP32(TestSinDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[8192, 64]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[8192, 64]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+
+    def init_params(self):
+        self.dtype = "float32"
+
+
+class TestSinDevelopCase2_FP16(TestSinDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestSinDevelopCase2_BFP16(TestSinDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
 if __name__ == '__main__':
     np.random.seed(2023)
     unittest.main()
