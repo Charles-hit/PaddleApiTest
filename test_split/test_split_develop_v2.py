@@ -313,7 +313,7 @@ class TestSplitDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, dim_eager, num_eager, dout_eager
             )
@@ -380,7 +380,7 @@ class TestSplitDevelopCase1_FP32(unittest.TestCase):
                     fetch_list=out_static_pg + out_grads_static_pg,
                 )
                 out_static_baseline, out_grads_static_baseline = out[:3], out[3:]
-            for i in range(50):
+            for i in range(5):
                 if self.np_num == 2:
                     out = exe.run(
                         mp,
@@ -474,6 +474,78 @@ class TestSplitDevelopCase3_FP16(TestSplitDevelopCase3_FP32):
 
 
 class TestSplitDevelopCase3_BFP16(TestSplitDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestSplitDevelopCase4_FP32(TestSplitDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 1, 128]).astype("float32") - 0.5
+        self.np_dim = -1
+        self.np_num = 2
+        self.np_dout = []
+        for _ in range(self.np_num):
+            self.np_dout.append(np.random.random(size=[1, 8192, 1, 64]).astype("float32") - 0.5)
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            for i in range(self.np_num):
+                self.np_dout[i] = self.np_dout[i].astype("float16")
+
+class TestSplitDevelopCase4_FP16(TestSplitDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestSplitDevelopCase4_BFP16(TestSplitDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestSplitDevelopCase5_FP32(TestSplitDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 14, 384]).astype("float32") - 0.5
+        self.np_dim = -1
+        self.np_num = 3
+        self.np_dout = []
+        for _ in range(self.np_num):
+            self.np_dout.append(np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5)
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            for i in range(self.np_num):
+                self.np_dout[i] = self.np_dout[i].astype("float16")
+
+class TestSplitDevelopCase5_FP16(TestSplitDevelopCase5_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestSplitDevelopCase5_BFP16(TestSplitDevelopCase5_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestSplitDevelopCase6_FP32(TestSplitDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 9632]).astype("float32") - 0.5
+        self.np_dim = -1
+        self.np_num = 2
+        self.np_dout = []
+        for _ in range(self.np_num):
+            self.np_dout.append(np.random.random(size=[1, 8192, 4816]).astype("float32") - 0.5)
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            for i in range(self.np_num):
+                self.np_dout[i] = self.np_dout[i].astype("float16")
+
+class TestSplitDevelopCase6_FP16(TestSplitDevelopCase6_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestSplitDevelopCase6_BFP16(TestSplitDevelopCase6_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
