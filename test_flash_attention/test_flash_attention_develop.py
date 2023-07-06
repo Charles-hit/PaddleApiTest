@@ -172,11 +172,6 @@ class TestFlashAttentionDevelopCase1_FP16(unittest.TestCase):
             lambda x: x.numpy(),
             out_grads_eager,
         )
-        np.savez(
-            self.save_eager_res_path,
-            out_eager=out_eager_np,
-            out_grads_eager_0=out_grads_eager_np[0],
-        )
         del out_eager
         del out_grads_eager
         paddle.device.cuda.empty_cache()
