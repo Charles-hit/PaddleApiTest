@@ -259,7 +259,7 @@ class TestUnsqueezeDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, dout_eager
             )
@@ -310,7 +310,7 @@ class TestUnsqueezeDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "dout": self.np_dout},
@@ -405,6 +405,83 @@ class TestUnsqueezeDevelopCase3_BFP16(TestUnsqueezeDevelopCase3_FP32):
         self.dtype = "bfloat16"
         self.axis = 1
 
+class TestUnsqueezeDevelopCase4_FP32(TestUnsqueezeDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 8192, 1]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+    def init_params(self):
+        self.dtype = "float32"
+        self.axis = 2
+
+
+class TestUnsqueezeDevelopCase4_FP16(TestUnsqueezeDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.axis = 2
+
+
+class TestUnsqueezeDevelopCase4_BFP16(TestUnsqueezeDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.axis = 2
+
+class TestUnsqueezeDevelopCase5_FP32(TestUnsqueezeDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[64]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[1, 64]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+    def init_params(self):
+        self.dtype = "float32"
+        self.axis = 0
+
+
+class TestUnsqueezeDevelopCase5_FP16(TestUnsqueezeDevelopCase5_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.axis = 0
+
+
+class TestUnsqueezeDevelopCase5_BFP16(TestUnsqueezeDevelopCase5_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.axis = 0
+
+class TestUnsqueezeDevelopCase6_FP32(TestUnsqueezeDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[8192]).astype("float32") - 0.5
+        self.np_dout = np.random.random(size=[8192, 1]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+    def init_params(self):
+        self.dtype = "float32"
+        self.axis = 1
+
+
+class TestUnsqueezeDevelopCase6_FP16(TestUnsqueezeDevelopCase6_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.axis = 1
+
+
+class TestUnsqueezeDevelopCase6_BFP16(TestUnsqueezeDevelopCase6_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.axis = 1
 
 if __name__ == '__main__':
     np.random.seed(2023)

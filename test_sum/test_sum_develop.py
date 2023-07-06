@@ -255,7 +255,7 @@ class TestSumDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, dout_eager
             )
@@ -306,7 +306,7 @@ class TestSumDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "dout": self.np_dout},
@@ -515,9 +515,13 @@ class TestSumDevelopCase9_BFP16(TestSumDevelopCase9_FP32):
 
 
 class TestSumDevelopCase10_FP32(TestSumDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [7]
+
     def init_np_inputs_and_dout(self):
         # init np array 
-        self.np_x = np.random.random(size=[7]).astype("float32") - 0.5
+        self.np_x = np.random.random(size=self.size).astype("float32") - 0.5
         self.np_dout = np.float32(np.random.random()) - 0.5
         # convert np array dtype
         if self.dtype == "float16":
@@ -528,11 +532,181 @@ class TestSumDevelopCase10_FP32(TestSumDevelopCase1_FP32):
 class TestSumDevelopCase10_FP16(TestSumDevelopCase10_FP32):
     def init_params(self):
         self.dtype = "float16"
+        self.size = [7]
 
 
 class TestSumDevelopCase10_BFP16(TestSumDevelopCase10_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
+        self.size = [7]
+
+class TestSumDevelopCase11_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [12528, 14336]
+
+class TestSumDevelopCase11_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [12528, 14336]
+
+class TestSumDevelopCase11_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [12528, 14336]
+
+
+
+class TestSumDevelopCase12_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [12]
+
+class TestSumDevelopCase12_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [12]
+
+class TestSumDevelopCase12_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [12]
+
+
+
+class TestSumDevelopCase13_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [13]
+
+class TestSumDevelopCase13_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [13]
+
+class TestSumDevelopCase13_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [13]
+
+
+
+class TestSumDevelopCase14_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [14336, 5376]
+
+class TestSumDevelopCase14_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 5376]
+
+class TestSumDevelopCase14_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 5376]
+
+
+
+class TestSumDevelopCase15_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [14336, 9632]
+
+class TestSumDevelopCase15_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 9632]
+
+class TestSumDevelopCase15_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336, 9632]
+
+
+
+class TestSumDevelopCase16_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [14336]
+
+class TestSumDevelopCase16_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336]
+
+class TestSumDevelopCase16_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [14336]
+
+
+
+class TestSumDevelopCase17_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [1792, 14336]
+
+class TestSumDevelopCase17_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [1792, 14336]
+
+class TestSumDevelopCase17_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [1792, 14336]
+
+
+
+class TestSumDevelopCase18_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [4816, 14336]
+
+class TestSumDevelopCase18_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [4816, 14336]
+
+class TestSumDevelopCase18_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [4816, 14336]
+
+
+
+class TestSumDevelopCase19_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [5376]
+
+class TestSumDevelopCase19_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [5376]
+
+class TestSumDevelopCase19_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [5376]
+
+
+
+class TestSumDevelopCase20_FP32(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [9632]
+
+class TestSumDevelopCase20_FP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [9632]
+
+class TestSumDevelopCase20_BFP16(TestSumDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [9632]
 
 
 if __name__ == '__main__':

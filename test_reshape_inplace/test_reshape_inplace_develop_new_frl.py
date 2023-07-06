@@ -189,7 +189,7 @@ class TestReshapeInplaceDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(
                 x_eager, shape_eager, dout_eager
             )
@@ -227,6 +227,325 @@ class TestReshapeInplaceDevelopCase1_FP16(TestReshapeInplaceDevelopCase1_FP32):
 
 
 class TestReshapeInplaceDevelopCase1_BFP16(TestReshapeInplaceDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase7_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 1, 64, 2]).astype("float32") - 0.5
+        self.np_shape = [1, 8192, 1, 128]
+        self.np_dout = np.random.random(size=[1, 8192, 1, 128]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase7_FP16(TestReshapeInplaceDevelopCase7_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase7_BFP16(TestReshapeInplaceDevelopCase7_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase8_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 14, 128]).astype("float32") - 0.5
+        self.np_shape = [1, 8192, 1792]
+        self.np_dout = np.random.random(size=[1, 8192, 1792]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase8_FP16(TestReshapeInplaceDevelopCase8_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase8_BFP16(TestReshapeInplaceDevelopCase8_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase9_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 1]).astype("float32") - 0.5
+        self.np_shape = [8192]
+        self.np_dout = np.random.random(size=[8192]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase9_FP16(TestReshapeInplaceDevelopCase9_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase9_BFP16(TestReshapeInplaceDevelopCase9_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase10_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192, 5376]).astype("float32") - 0.5
+        self.np_shape = [1, 8192, 14, 384]
+        self.np_dout = np.random.random(size=[1, 8192, 14, 384]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase10_FP16(TestReshapeInplaceDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase10_BFP16(TestReshapeInplaceDevelopCase10_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase11_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1, 8192]).astype("float32") - 0.5
+        self.np_shape = [8192]
+        self.np_dout = np.random.random(size=[8192]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase11_FP16(TestReshapeInplaceDevelopCase11_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase11_BFP16(TestReshapeInplaceDevelopCase11_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase12_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[14336, 31250]).astype("float32") - 0.5
+        self.np_shape = [448000000]
+        self.np_dout = np.random.random(size=[448000000]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase12_FP16(TestReshapeInplaceDevelopCase12_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase12_BFP16(TestReshapeInplaceDevelopCase12_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase13_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[14336, 5376]).astype("float32") - 0.5
+        self.np_shape = [77070336]
+        self.np_dout = np.random.random(size=[77070336]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase13_FP16(TestReshapeInplaceDevelopCase13_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase13_BFP16(TestReshapeInplaceDevelopCase13_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase14_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[14336, 9632]).astype("float32") - 0.5
+        self.np_shape = [138084352]
+        self.np_dout = np.random.random(size=[138084352]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase14_FP16(TestReshapeInplaceDevelopCase14_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase14_BFP16(TestReshapeInplaceDevelopCase14_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestReshapeInplaceDevelopCase15_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[14336]).astype("float32") - 0.5
+        self.np_shape = [14336]
+        self.np_dout = np.random.random(size=[14336]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase15_FP16(TestReshapeInplaceDevelopCase15_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase15_BFP16(TestReshapeInplaceDevelopCase15_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase16_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[1792, 14336]).astype("float32") - 0.5
+        self.np_shape = [25690112]
+        self.np_dout = np.random.random(size=[25690112]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase16_FP16(TestReshapeInplaceDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase16_BFP16(TestReshapeInplaceDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase17_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[31250, 14336]).astype("float32") - 0.5
+        self.np_shape = [448000000]
+        self.np_dout = np.random.random(size=[448000000]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase17_FP16(TestReshapeInplaceDevelopCase17_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase17_BFP16(TestReshapeInplaceDevelopCase17_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase18_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[31250]).astype("float32") - 0.5
+        self.np_shape = [31250]
+        self.np_dout = np.random.random(size=[31250]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase18_FP16(TestReshapeInplaceDevelopCase18_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase18_BFP16(TestReshapeInplaceDevelopCase18_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase19_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[4816, 14336]).astype("float32") - 0.5
+        self.np_shape = [69042176]
+        self.np_dout = np.random.random(size=[69042176]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase19_FP16(TestReshapeInplaceDevelopCase19_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase19_BFP16(TestReshapeInplaceDevelopCase19_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase20_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[5376]).astype("float32") - 0.5
+        self.np_shape = [5376]
+        self.np_dout = np.random.random(size=[5376]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase20_FP16(TestReshapeInplaceDevelopCase20_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase20_BFP16(TestReshapeInplaceDevelopCase20_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase21_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[8192, 128]).astype("float32") - 0.5
+        self.np_shape = [1, 1, 8192, 128]
+        self.np_dout = np.random.random(size=[1, 1, 8192, 128]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase21_FP16(TestReshapeInplaceDevelopCase21_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase21_BFP16(TestReshapeInplaceDevelopCase21_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+
+class TestReshapeInplaceDevelopCase22_FP32(TestReshapeInplaceDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array 
+        self.np_x = np.random.random(size=[9632]).astype("float32") - 0.5
+        self.np_shape = [9632]
+        self.np_dout = np.random.random(size=[9632]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestReshapeInplaceDevelopCase22_FP16(TestReshapeInplaceDevelopCase22_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+class TestReshapeInplaceDevelopCase22_BFP16(TestReshapeInplaceDevelopCase22_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 

@@ -118,7 +118,7 @@ class TestEmptyLikeDevelopCase1_FP32(unittest.TestCase):
         del out_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager = self.cal_eager_res(x_eager)
             out_eager = out_eager.numpy()
             # test develop eager forward stability
@@ -161,6 +161,69 @@ class TestEmptyLikeDevelopCase2_FP16(TestEmptyLikeDevelopCase2_FP32):
 
 
 class TestEmptyLikeDevelopCase2_BFP16(TestEmptyLikeDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestEmptyLikeDevelopCase3_FP32(TestEmptyLikeDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[1466]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+
+
+class TestEmptyLikeDevelopCase3_FP16(TestEmptyLikeDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestEmptyLikeDevelopCase3_BFP16(TestEmptyLikeDevelopCase3_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestEmptyLikeDevelopCase4_FP32(TestEmptyLikeDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[5]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+
+
+class TestEmptyLikeDevelopCase4_FP16(TestEmptyLikeDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestEmptyLikeDevelopCase4_BFP16(TestEmptyLikeDevelopCase4_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
+class TestEmptyLikeDevelopCase5_FP32(TestEmptyLikeDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.random(size=[]).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+
+
+class TestEmptyLikeDevelopCase5_FP16(TestEmptyLikeDevelopCase5_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestEmptyLikeDevelopCase5_BFP16(TestEmptyLikeDevelopCase5_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 

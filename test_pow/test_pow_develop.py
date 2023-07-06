@@ -390,6 +390,27 @@ class TestPowDevelopCase2_BFP16(TestPowDevelopCase2_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
+class TestPowDevelopCase2_FP32(TestPowDevelopCase1_FP32):
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = np.random.uniform(1.0, 5.0, size=(64)).astype("float32")
+        self.np_y = np.random.uniform(-3.0, 3.0, size=(64)).astype("float32")
+        self.np_dout = np.random.uniform(-1.0, 1.0, size=(64)).astype("float32")
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = self.np_x.astype("float16")
+            self.np_y = self.np_y.astype("float16")
+            self.np_dout = self.np_dout.astype("float16")
+
+class TestPowDevelopCase2_FP16(TestPowDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+
+
+class TestPowDevelopCase2_BFP16(TestPowDevelopCase2_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+
 
 class TestPowDevelopCase3_FP32(TestPowDevelopCase1_FP32):
     def init_np_inputs_and_dout(self):

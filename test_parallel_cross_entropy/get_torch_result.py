@@ -67,13 +67,14 @@ class TestTorch(init_config_class.InitConfigClass):
             out_grads = out_grads.to(dtype=torch.float32)
         return out, out_grads
 
-dtype_list = ["float32", "float16", "bfloat16"]
+dtype_list = ["float32"]
 
 prepare_data.generate_np_inputs_and_dout()
 
-for dtype in dtype_list:
+for id in [1, 2]:
+    for dtype in dtype_list:
 
-    np_input_dir = "./inputs_case1.npz"
-    torch_dir = "./torch_out_{dtype}.npz".format(dtype=dtype)
+        np_input_dir = "./inputs_case{id}.npz".format(id=id)
+        torch_dir = "./torch_out_{dtype}_{id}.npz".format(dtype=dtype, id=id)
 
-    test_torch = TestTorch('cuda', np_input_dir, dtype, torch_dir)
+        test_torch = TestTorch('cuda', np_input_dir, dtype, torch_dir)

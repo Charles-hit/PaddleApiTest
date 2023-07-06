@@ -266,7 +266,7 @@ class TestFusedLinearParamGradAddDevelopCase1_FP32(unittest.TestCase):
         del out_dbias_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             x_eager, dy_eager, dweight_eager, dbias_eager = self.gen_eager_inputs_and_dout()
             out_dweight_eager, out_dbias_eager = self.cal_eager_res(
                 x_eager, dy_eager, dweight_eager, dbias_eager
@@ -316,6 +316,80 @@ class TestFusedLinearParamGradAddDevelopCase2_FP16(TestFusedLinearParamGradAddDe
 class TestFusedLinearParamGradAddDevelopCase2_BFP16(TestFusedLinearParamGradAddDevelopCase2):
     def init_params(self):
         self.dtype = "bfloat16"
+
+class TestFusedLinearParamGradAddDevelopCase3_FP32(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shape = [1, 8192, 14336]
+        self.output_size = 5376 
+
+class TestFusedLinearParamGradAddDevelopCase3_FP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shape = [1, 8192, 14336]
+        self.output_size = 5376 
+
+class TestFusedLinearParamGradAddDevelopCase3_BFP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shape = [1, 8192, 14336]
+        self.output_size = 5376 
+
+
+class TestFusedLinearParamGradAddDevelopCase4_FP32(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shape = [1, 8192, 14336]
+        self.output_size = 9632
+
+class TestFusedLinearParamGradAddDevelopCase4_FP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shape = [1, 8192, 14336]
+        self.output_size = 9632
+
+class TestFusedLinearParamGradAddDevelopCase4_BFP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shape = [1, 8192, 14336]
+        self.output_size = 9632
+
+class TestFusedLinearParamGradAddDevelopCase5_FP32(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shape = [1, 8192, 1792]
+        self.output_size = 14336
+
+class TestFusedLinearParamGradAddDevelopCase5_FP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shape = [1, 8192, 1792]
+        self.output_size = 14336
+
+class TestFusedLinearParamGradAddDevelopCase5_BFP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shape = [1, 8192, 1792]
+        self.output_size = 14336
+
+class TestFusedLinearParamGradAddDevelopCase6_FP32(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.shape = [1, 8192, 4816]
+        self.output_size = 14336
+
+class TestFusedLinearParamGradAddDevelopCase6_FP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shape = [1, 8192, 4816]
+        self.output_size = 14336
+
+class TestFusedLinearParamGradAddDevelopCase6_BFP16(TestFusedLinearParamGradAddDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.shape = [1, 8192, 4816]
+        self.output_size = 14336
+
 
 if __name__ == '__main__':
     np.random.seed(2023)

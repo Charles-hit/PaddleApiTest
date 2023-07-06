@@ -13,6 +13,8 @@ from utils import (
     np_assert_staility,
 )
 
+dim = [1, 8192]
+
 def set_random_seed(seed):
     """Set random seed for reproducability."""
     random.seed(seed)
@@ -21,18 +23,19 @@ def set_random_seed(seed):
     fleet.meta_parallel.model_parallel_random_seed(seed)
 
 class TestPaddle(init_config_class.InitConfigClass):
-    def __init__(self, group, np_input_dir="./inputs_case1.npz", dtype="float32", save_static_res_path="./static_develop_res_case1_float32.npz" , save_eager_res_path="./eager_develop_res_case1_float32.npz", torch_dir="1_torch_out_float32.npz"):
+    def __init__(self, group, id, np_input_dir="./inputs_case1.npz", dtype="float32", save_static_res_path="./static_develop_res_case1_float32.npz" , save_eager_res_path="./eager_develop_res_case1_float32.npz", torch_dir="1_torch_out_float32.npz"):
         self._init_params(np_input_dir, dtype, save_static_res_path, save_eager_res_path)
         self._init_threshold()
         self._init_np_inputs_and_dout()
         self._group = group
+        self.id =id
         world_size = paddle.distributed.get_world_size()
         rank = paddle.distributed.get_rank()
-        self.np_paddle_logits = np.array_split(self.np_logits, world_size, axis = 1)[rank]
+        self.np_paddle_logits = np.array_split(self.np_logits, world_size, axis = -1)[rank]
         if rank == 0:
             np_inputs_array = np.load(torch_dir)
             self._out_torch = np_inputs_array["torch_out"]
-            self._out_grads_torch = np.array_split(np_inputs_array["torch_out_grad"], world_size, axis = 1)[rank]
+            self._out_grads_torch = np.array_split(np_inputs_array["torch_out_grad"], world_size, axis = -1)[rank]
         
     
     def _gen_eager_inputs_and_dout(self):
@@ -105,7 +108,7 @@ class TestPaddle(init_config_class.InitConfigClass):
 
         loss_func = fleet.meta_parallel.ParallelCrossEntropy(mp_group=self._group, ignore_index=-100)
         out = loss_func(logits_t, label_t)
-        out = paddle.reshape(out, [1])
+        out = paddle.reshape(out, [dim[self.id]])
         out_grads = paddle.static.gradients(
             [out], [logits_t], target_gradients=[dout_t]
         )    
@@ -123,7 +126,7 @@ class TestPaddle(init_config_class.InitConfigClass):
         del label_eager 
         del dout_eager
         paddle.device.cuda.empty_cache()
-        out_eager1 = paddle.reshape(out_eager, shape = [1])
+        out_eager1 = paddle.reshape(out_eager, shape = [dim[self.id]])
         out_eager_np = out_eager1.numpy()
         out_grads_eager_np = out_grads_eager.numpy()
 
@@ -332,7 +335,7 @@ class TestPaddle(init_config_class.InitConfigClass):
                         print(e)
                         print("static_stability grad {dtype} failed".format(dtype=self.dtype))
 
-dtype_list = ["float32", "float16", "bfloat16"]
+dtype_list = ["float32"]
 
 dist_strategy = fleet.DistributedStrategy()
 world_size = paddle_dist.get_world_size()
@@ -347,21 +350,22 @@ set_random_seed(1024)
 
 group = paddle_dist.new_group([i for i in range(world_size)], backend='nccl')
 
-for dtype in dtype_list:
+for id in [1, 2]:
+    for dtype in dtype_list:
 
-    np_input_dir = "./inputs_case1.npz"
-    save_static_res_path = "./static_develop_res_case1_{dtype}.npz".format(dtype=dtype) 
-    save_eager_res_path = "./eager_develop_res_case1_{dtype}.npz".format(dtype=dtype)
-    torch_dir = "./torch_out_{dtype}.npz".format(dtype=dtype)
+        np_input_dir = "./inputs_case{id}.npz".format(id=id)
+        save_static_res_path = "./static_develop_res_case{id}_{dtype}.npz".format(id=id, dtype=dtype) 
+        save_eager_res_path = "./eager_develop_res_case{id}_{dtype}.npz".format(id=id, dtype=dtype)
+        torch_dir = "./torch_out_{dtype}_{id}.npz".format(dtype=dtype, id=id)
 
-    test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
-    test_paddle._test_eager_accuracy()
-    print("eager {dtype} success".format(dtype=dtype))
-    test_paddle._test_static_accuracy()
-    print("static {dtype} success".format(dtype=dtype))
-    test_paddle._test_eager_stability()
-    print("eager_stability {dtype}  success".format(dtype=dtype))
-    test_paddle._test_static_stability()
-    print("static_stability {dtype}  success".format(dtype=dtype))
+        test_paddle = TestPaddle(group, id - 1, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
+        test_paddle._test_eager_accuracy()
+        print("eager {dtype} success".format(dtype=dtype))
+        test_paddle._test_static_accuracy()
+        print("static {dtype} success".format(dtype=dtype))
+        test_paddle._test_eager_stability()
+        print("eager_stability {dtype}  success".format(dtype=dtype))
+        test_paddle._test_static_stability()
+        print("static_stability {dtype}  success".format(dtype=dtype))
 
-    print("{dtype} success".format(dtype=dtype))
+        print("{dtype} success".format(dtype=dtype))

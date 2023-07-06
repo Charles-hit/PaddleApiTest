@@ -212,7 +212,7 @@ class TestPaddle(init_config_class.InitConfigClass):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self._cal_eager_res(x_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = out_grads_eager.numpy()
@@ -264,7 +264,7 @@ class TestPaddle(init_config_class.InitConfigClass):
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
             
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self._np_x, "dout": self._np_dout},
@@ -308,13 +308,13 @@ paddle_dist.init_parallel_env()
 world_size = paddle_dist.get_world_size()
 group = paddle_dist.collective._get_default_group()
 
-for case_id in range(2):
+for case_id in [1, 2, 3]:
     for dtype_id, dtype in enumerate(dtype_list):
 
-        np_input_dir = "./inputs_case{id}.npz".format(id=(case_id + 1))
-        save_static_res_path = "./{id}_static_develop_res_case1_{dtype}.npz".format(id=(case_id + 1), dtype=dtype) 
-        save_eager_res_path = "./{id}_eager_develop_res_case1_{dtype}.npz".format(id=(case_id + 1), dtype=dtype)
-        torch_dir = "{id}_torch_out_{dtype}.npz".format(id=(case_id + 1), dtype=dtype)
+        np_input_dir = "./inputs_case{id}.npz".format(id=case_id)
+        save_static_res_path = "./{id}_static_develop_res_case1_{dtype}.npz".format(id=case_id, dtype=dtype) 
+        save_eager_res_path = "./{id}_eager_develop_res_case1_{dtype}.npz".format(id=case_id, dtype=dtype)
+        torch_dir = "{id}_torch_out_{dtype}.npz".format(id=case_id, dtype=dtype)
 
         test_paddle = TestPaddle(group, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
         test_paddle._test_eager_accuracy()

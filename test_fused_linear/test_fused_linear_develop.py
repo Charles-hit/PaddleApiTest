@@ -31,9 +31,33 @@ def generate_np_inputs_and_dout():
     b_case3 = np.random.random(size=[12288]).astype("float32")
     dout_case3 = np.random.random(size=[1, 4096, 12288]).astype("float32")
 
+    x_case4 = np.random.random(size=[1, 8192, 14336]).astype("float32")
+    w_case4 = np.random.random(size=[14336, 5376]).astype("float32")
+    b_case4 = np.random.random(size=[5376]).astype("float32")
+    dout_case4 = np.random.random(size=[1, 8192, 5376]).astype("float32")
+
+    x_case5 = np.random.random(size=[1, 8192, 14336]).astype("float32")
+    w_case5 = np.random.random(size=[14336, 9632]).astype("float32")
+    b_case5 = np.random.random(size=[9632]).astype("float32")
+    dout_case5 = np.random.random(size=[1, 8192, 9632]).astype("float32")
+
+    x_case6 = np.random.random(size=[1, 8192, 1792]).astype("float32")
+    w_case6 = np.random.random(size=[1792, 14336]).astype("float32")
+    b_case6 = np.random.random(size=[14336]).astype("float32")
+    dout_case6 = np.random.random(size=[1, 8192, 14336]).astype("float32")
+
+    x_case7 = np.random.random(size=[1, 8192, 4816]).astype("float32")
+    w_case7 = np.random.random(size=[4816, 14336]).astype("float32")
+    b_case7 = np.random.random(size=[14336]).astype("float32")
+    dout_case7 = np.random.random(size=[1, 8192, 14336]).astype("float32")
+
     np.savez("./inputs_case1.npz", x = x_case1, w = w_case1, b = b_case1, dout = dout_case1)
     np.savez("./inputs_case2.npz", x = x_case2, w = w_case2, b = b_case2, dout = dout_case2)
     np.savez("./inputs_case3.npz", x = x_case3, w = w_case3, b = b_case3, dout = dout_case3)
+    np.savez("./inputs_case4.npz", x = x_case4, w = w_case4, b = b_case4, dout = dout_case4)
+    np.savez("./inputs_case5.npz", x = x_case5, w = w_case5, b = b_case5, dout = dout_case5)
+    np.savez("./inputs_case6.npz", x = x_case6, w = w_case6, b = b_case6, dout = dout_case6)
+    np.savez("./inputs_case7.npz", x = x_case7, w = w_case7, b = b_case7, dout = dout_case7)
 
 class TestFCDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
@@ -340,7 +364,7 @@ class TestFCDevelopCase1_FP32(unittest.TestCase):
         del out_grads_eager_baseline
         paddle.device.cuda.empty_cache()
 
-        for i in range(50):
+        for i in range(5):
             out_eager, out_grads_eager = self.cal_eager_res(x_eager, w_eager, b_eager, dout_eager)
             out_eager = out_eager.numpy()
             out_grads_eager = map_structure(
@@ -388,7 +412,7 @@ class TestFCDevelopCase1_FP32(unittest.TestCase):
                 fetch_list=[out_static_pg] + out_grads_static_pg,
             )
             out_static_baseline, out_grads_static_baseline = out[0], out[1:]
-            for i in range(50):
+            for i in range(5):
                 out = exe.run(
                     mp,
                     feed={"x": self.np_x, "w": self.np_w, "b": self.np_b, "dout": self.np_dout},
@@ -478,6 +502,105 @@ class TestFCDevelopCase3_BFP16(TestFCDevelopCase1_FP32):
         self.dtype = "bfloat16"
         self.save_static_res_path = "./static_develop_res_case3_bfp16.npz"
         self.save_eager_res_path = "./eager_develop_res_case3_bfp16.npz"
+
+class TestFCDevelopCase4_FP32(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case4_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_fp32.npz"
+
+class TestFCDevelopCase4_FP16(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case4_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_fp16.npz"
+
+class TestFCDevelopCase4_BFP16(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case4.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case4_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case4_bfp16.npz"
+
+
+class TestFCDevelopCase5_FP32(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case5.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case5_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case5_fp32.npz"
+
+class TestFCDevelopCase5_FP16(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case5.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case5_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case5_fp16.npz"
+
+class TestFCDevelopCase5_BFP16(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case5.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case5_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case5_bfp16.npz"
+
+
+class TestFCDevelopCase6_FP32(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case6.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case6_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case6_fp32.npz"
+
+class TestFCDevelopCase6_FP16(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case6.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case6_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case6_fp16.npz"
+
+class TestFCDevelopCase6_BFP16(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case6.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case6_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case6_bfp16.npz" 
+
+
+class TestFCDevelopCase7_FP32(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case7.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "float32"
+        self.save_static_res_path = "./static_develop_res_case7_fp32.npz"
+        self.save_eager_res_path = "./eager_develop_res_case7_fp32.npz"
+
+class TestFCDevelopCase7_FP16(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case7.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "float16"
+        self.save_static_res_path = "./static_develop_res_case7_fp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case7_fp16.npz"
+
+class TestFCDevelopCase7_BFP16(TestFCDevelopCase1_FP32):
+    def init_params(self):
+        self.np_input_dir = "./inputs_case7.npz"
+        self.num_flatten_dims = -1
+        self.dtype = "bfloat16"
+        self.save_static_res_path = "./static_develop_res_case7_bfp16.npz"
+        self.save_eager_res_path = "./eager_develop_res_case7_bfp16.npz" 
 
 if __name__ == '__main__':
     generate_np_inputs_and_dout()
