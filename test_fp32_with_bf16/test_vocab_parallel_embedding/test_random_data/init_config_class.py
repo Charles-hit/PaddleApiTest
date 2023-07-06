@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-sys.path.append("../..")
+sys.path.append("../../..")
 from utils import TOLERANCE, convert_dtype_to_torch_type
 
 card_num = 8
