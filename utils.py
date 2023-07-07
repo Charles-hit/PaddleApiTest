@@ -52,7 +52,10 @@ def np_assert_accuracy(
     sub_res = sub_res.take(nonzero_idx)
     np_b_flatten_nonzero = np_b_flatten.take(nonzero_idx).flatten()
     np_a_flatten_nonzero = np_a_flatten.take(nonzero_idx).flatten()
-    max_rtol_idx = np.argmax(np.abs(sub_res / np_b_flatten_nonzero))
+    if sub_res.size ==0:
+        max_rtol_idx = 0
+    else:
+        max_rtol_idx = np.argmax(np.abs(sub_res / np_b_flatten_nonzero))
     np.testing.assert_allclose(
         np_a,
         np_b,
@@ -99,8 +102,11 @@ def np_assert_staility(
     nonzero_idx = np.nonzero(np_baseline_flatten)
     sub_res = sub_res.take(nonzero_idx)
     np_baseline_flatten_nonzero = np_baseline_flatten.take(nonzero_idx).flatten()
-    np_actual_flatten_nonzero = np_actual_flatten.take(nonzero_idx).flatten()
-    max_rtol_idx = np.argmax(np.abs(sub_res / np_baseline_flatten_nonzero))
+    if sub_res.size == 0:
+        max_rtol_idx = 0
+    else:
+        np_actual_flatten_nonzero = np_actual_flatten.take(nonzero_idx).flatten()
+        max_rtol_idx = np.argmax(np.abs(sub_res / np_baseline_flatten_nonzero))
     np.testing.assert_equal(
         np_actual,
         np_baseline,
