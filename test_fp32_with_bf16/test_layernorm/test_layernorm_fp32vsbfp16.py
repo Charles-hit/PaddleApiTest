@@ -8,16 +8,19 @@ sys.path.append("../..")
 from utils import TOLERANCE, convert_dtype_to_torch_type, np_assert_accuracy
 
 
+niuliling_path = None  # 全局变量
 class TestLayerNormFP32vsBFP16(unittest.TestCase):
     def setUp(self):
         self.init_np_inputs_and_dout()
 
     def init_np_inputs_and_dout(self):
         # init np array 
-        self.np_x = np.random.random(size=[1, 8192, 14336]).astype("float32") - 0.5
-        self.np_w = np.random.random(size=[14336]).astype("float32") - 0.5
-        self.np_b= np.random.random(size=[14336]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[1, 8192, 14336]).astype("float32") - 0.5
+        data_xwb = np.load(niuliling_path+".npz")
+        data_dout = np.load(niuliling_path+".npy")
+        self.np_x = data_xwb["x"].astype("float32")
+        self.np_w = data_xwb["weight"].astype("float32")
+        self.np_b = data_xwb["bias"].astype("float32")
+        self.np_dout = data_dout.astype("float32")
     
     def gen_eager_inputs_and_dout(self):
         x = paddle.to_tensor(
@@ -133,5 +136,14 @@ class TestLayerNormFP32vsBFP16(unittest.TestCase):
         except Exception as e:
             print(e)
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("请提供 data_path 参数")
+        sys.exit(1)
+
+    tmp = sys.argv[1]  # 设置全局变量 data_path
+    niuliling_path = tmp
+    print(tmp) 
+    del sys.argv[1]
+
     np.random.seed(2023)
     unittest.main()

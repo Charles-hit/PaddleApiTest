@@ -13,6 +13,7 @@ from utils import (
 
 global_out = []
 global_dout = []
+niuliling_path = None  # 全局变量
 
 class TestFCDevelop(unittest.TestCase):
     def __init__(self, shape, dtype, test_mode):
@@ -28,10 +29,15 @@ class TestFCDevelop(unittest.TestCase):
 
     def init_np_inputs_and_dout(self):
         np.random.seed(123)
-        self.np_x = np.random.random(size=self.shape["x"]).astype("float32") - 0.5
-        self.np_w = np.random.random(size=self.shape["w"]).astype("float32") - 0.5
-        self.np_b = np.random.random(size=self.shape["b"]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=self.shape["dout"]).astype("float32") - 0.5
+        data_xwb = np.load(niuliling_path+".npz")
+        data_dout = np.load(niuliling_path+".npy")
+        self.np_x = data_xwb["x"]
+        self.np_w = data_xwb["weight"]
+        self.np_b = data_xwb["bias"]
+        print("shape x ", self.np_x.shape)
+        print("shape w ", self.np_w.shape)
+        print("shape b ", self.np_b.shape)
+        self.np_dout = data_dout.astype("float32")
 
         # convert np array dtype
         if self.dtype == "float16":
@@ -122,10 +128,20 @@ class TestFCDevelop(unittest.TestCase):
         del out_grads_eager
 
 if __name__ == '__main__':
-    x = [[1, 8192, 14336], [1, 8192, 14336], [1, 8192, 1792], [1, 8192, 4816]]
-    w = [[14336, 5376], [14336, 9632], [1792, 14336], [4816, 14336]]
-    b = [[5376], [9632], [14336], [14336]]
-    dout = [[1, 8192, 5376], [1, 8192, 9632], [1, 8192, 14336], [1, 8192, 14336]]
+    if len(sys.argv) < 2:
+        print("请提供 data_path 参数")
+        sys.exit(1)
+
+    tmp = sys.argv[1]  # 设置全局变量 data_path
+    niuliling_path = tmp
+    print(tmp) 
+    del sys.argv[1]
+
+
+    x = [[1, 8192, 14336]] #, [1, 8192, 14336], [1, 8192, 1792], [1, 8192, 4816]]
+    w = [[14336, 5376]] #, [14336, 9632], [1792, 14336], [4816, 14336]]
+    b = [[5376], [9632]] #, [14336], [14336]]
+    dout = [[1, 8192, 5376]]#, [1, 8192, 9632], [1, 8192, 14336], [1, 8192, 14336]]
     shape_list = []
     for i in range(len(x)):
         shape = {}
@@ -134,13 +150,15 @@ if __name__ == '__main__':
         shape["b"] = b[i]
         shape["dout"] = dout[i]
         shape_list.append(shape)
+
     for test_mode in [1,2]:
         if test_mode == 1:
             atol = 1e-2
         elif test_mode == 2:
             atol = 1e-6
-        print("test_mode_{test_mode} start*************************************************************************" \
-            .format(test_mode=test_mode))
+        #print("test_mode_{test_mode} start*************************************************************************" \
+        #    .format(test_mode=test_mode))
+        print(tmp, "test_mode", test_mode) 
         for shape in shape_list:
             global_out.clear()
             global_dout.clear()

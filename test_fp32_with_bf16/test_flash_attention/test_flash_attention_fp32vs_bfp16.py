@@ -28,6 +28,8 @@ from utils import (
     convert_dtype_to_torch_type,
     np_assert_accuracy
 )
+
+niuliling_path = None  # 全局变量
 def get_triangle_upper_mask(shape):
     mask = paddle.full(shape=shape, fill_value=-np.inf)
     mask.stop_gradient = True
@@ -56,26 +58,47 @@ class TestFlashAttentionFP32vsBFP16(unittest.TestCase):
 
     def init_np_inputs_and_dout(self):
         # init np array 
-        self.np_x = np.random.random(size=[1,8192,14,128]).astype("float32") - 0.5
-        self.np_dout = np.random.random(size=[1,8192,14,128]).astype("float32") - 0.5
+        data_xwb = np.load(niuliling_path+".npz")
+        data_dout = np.load(niuliling_path+".npy")
+
+        self.np_q = data_xwb["query"].astype("float32")
+        self.np_k = data_xwb["key"].astype("float32")
+        self.np_v = data_xwb["value"].astype("float32")
+
+        print("shape q ", self.np_q.shape) # = data_xwb["query"].astype("float32")
+        print("shape k", self.np_k.shape) # = data_xwb["key"].astype("float32")
+        print("shape v", self.np_v.shape) # = data_xwb["value"].astype("float32")
+        self.np_dout = data_dout.astype("float32")
     
     def gen_eager_inputs_and_dout(self):
         x_eager = paddle.to_tensor(
-            self.np_x,
+            self.np_q,
             dtype="float32",
             place="gpu",
         )
         x_eager.stop_gradient = False
+        k_eager = paddle.to_tensor(
+            self.np_k,
+            dtype="float32",
+            place="gpu",
+        )
+        k_eager.stop_gradient = False
+        v_eager = paddle.to_tensor(
+            self.np_v,
+            dtype="float32",
+            place="gpu",
+        )
+        v_eager.stop_gradient = False
         dout_eager = paddle.to_tensor(
             self.np_dout,
             dtype="float32",
             place="gpu",
         )
         dout_eager.stop_gradient = False
-        return x_eager, dout_eager
-    def cal_bfp16_res(self, x, dout):
-        out, _ = flash_attention(x, x, x, 0.0, True, False)
-        out_grads = paddle.grad([out], [x], grad_outputs=[dout])
+        return x_eager, k_eager, v_eager, dout_eager
+    def cal_bfp16_res(self, x, k, v, dout):
+        out, _ = flash_attention(x, k, v, 0.0, True, False)
+        out_grads = paddle.grad([out], [x,k,v], grad_outputs=[dout])
         return out, out_grads
     
     # def cal_fp32_res(self, x, dout):
@@ -87,16 +110,16 @@ class TestFlashAttentionFP32vsBFP16(unittest.TestCase):
     #     out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
     #     return out, out_grads
 
-    def cal_fp32_res(self, x, dout):
-        out = multi_head_attention(x, x, x)
-        out_grads = paddle.grad([out], [x], grad_outputs=[dout])
+    def cal_fp32_res(self, x, k, v, dout):
+        out = multi_head_attention(x, k, v)
+        out_grads = paddle.grad([out], [x,k,v], grad_outputs=[dout])
         return out, out_grads
 
     def test_flash_atten_fp32vsbfp16_mode1(self):
-        x_bfp16, dout_bfp16 = map_structure(lambda x: paddle.cast(x, dtype="bfloat16"), self.gen_eager_inputs_and_dout())
-        x_fp32, dout_fp32 = paddle.cast(x_bfp16,"float32"), paddle.cast(dout_bfp16,"float32")
-        out_fp32, out_grads_fp32 = self.cal_fp32_res(x_fp32, dout_fp32)
-        out_bfp16, out_grads_bfp16 = self.cal_bfp16_res(x_bfp16, dout_bfp16)
+        x_bfp16, k_bfp16, v_bfp16, dout_bfp16 = map_structure(lambda x: paddle.cast(x, dtype="bfloat16"), self.gen_eager_inputs_and_dout())
+        x_fp32, k_fp32, v_fp32, dout_fp32 = paddle.cast(x_bfp16,"float32"), paddle.cast(k_bfp16,"float32"),paddle.cast(v_bfp16,"float32"),paddle.cast(dout_bfp16,"float32")
+        out_fp32, out_grads_fp32 = self.cal_fp32_res(x_fp32,k_fp32, v_fp32, dout_fp32)
+        out_bfp16, out_grads_bfp16 = self.cal_bfp16_res(x_bfp16, k_bfp16, v_bfp16, dout_bfp16)
         pt_out_bfp16 = paddle.cast(out_bfp16, "float32")
         pt_out_grads_bfp16 = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads_bfp16)
         try:
@@ -132,11 +155,11 @@ class TestFlashAttentionFP32vsBFP16(unittest.TestCase):
             print(e)
 
     def test_flash_atten_fp32vsbfp16_mode2(self):
-        x_bfp16, dout_bfp16 = map_structure(lambda x: paddle.cast(x, dtype="bfloat16"), self.gen_eager_inputs_and_dout())
-        x_fp32, dout_fp32 = paddle.cast(x_bfp16,"float32"), paddle.cast(dout_bfp16,"float32")
-        out_fp32, out_grads_fp32 = self.cal_fp32_res(x_fp32, dout_fp32)
+        x_bfp16, k_bfp16, v_bfp16, dout_bfp16 = map_structure(lambda x: paddle.cast(x, dtype="bfloat16"), self.gen_eager_inputs_and_dout())
+        x_fp32, k_fp32, v_fp32, dout_fp32 = paddle.cast(x_bfp16,"float32"), paddle.cast(k_bfp16,"float32"),paddle.cast(v_bfp16,"float32"),paddle.cast(dout_bfp16,"float32")
+        out_fp32, out_grads_fp32 = self.cal_fp32_res(x_fp32, k_fp32, v_fp32,dout_fp32)
         out_grads_fp32 =  map_structure(lambda x: paddle.cast(paddle.cast(x,"bfloat16"),"float32"), out_grads_fp32)
-        out_bfp16, out_grads_bfp16 = self.cal_bfp16_res(x_bfp16, dout_bfp16)
+        out_bfp16, out_grads_bfp16 = self.cal_bfp16_res(x_bfp16, k_bfp16, v_bfp16, dout_bfp16)
         pt_out_bfp16 = paddle.cast(out_bfp16, "float32")
         pt_out_grads_bfp16 = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads_bfp16)
         try:
@@ -172,5 +195,14 @@ class TestFlashAttentionFP32vsBFP16(unittest.TestCase):
             print(e)
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("请提供 data_path 参数")
+        sys.exit(1)
+
+    tmp = sys.argv[1]  # 设置全局变量 data_path
+    niuliling_path = tmp
+    print(tmp) 
+
+    del sys.argv[1]
     np.random.seed(2023)
     unittest.main()

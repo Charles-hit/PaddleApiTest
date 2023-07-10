@@ -1,0 +1,8 @@
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/matmul-bf16-bf16-bf16-eager_tmp_100-encoder_layer_130_multi_head_att_output_fc_0.w_0-eager_tmp_101-pp-11-mp-0
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/matmul-bf16-bf16-bf16-eager_tmp_100-encoder_layer_130_multi_head_att_output_fc_1.w_0-eager_tmp_101-pp-11-mp-1
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/matmul-bf16-bf16-bf16-eager_tmp_100-encoder_layer_130_multi_head_att_output_fc_2.w_0-eager_tmp_101-pp-11-mp-2
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/matmul-bf16-bf16-bf16-eager_tmp_100-encoder_layer_130_multi_head_att_output_fc_3.w_0-eager_tmp_101-pp-11-mp-3
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/matmul-bf16-bf16-bf16-eager_tmp_100-encoder_layer_130_multi_head_att_output_fc_4.w_0-eager_tmp_101-pp-11-mp-4
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/matmul-bf16-bf16-bf16-eager_tmp_100-encoder_layer_130_multi_head_att_output_fc_5.w_0-eager_tmp_101-pp-11-mp-5
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/matmul-bf16-bf16-bf16-eager_tmp_100-encoder_layer_130_multi_head_att_output_fc_6.w_0-eager_tmp_101-pp-11-mp-6
+/home/niuliling/more/PaddleApiTest/test_fp32_with_bf16/numpy_data/matmul-bf16-bf16-bf16-eager_tmp_100-encoder_layer_130_multi_head_att_output_fc_7.w_0-eager_tmp_101-pp-11-mp-7
