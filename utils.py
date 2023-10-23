@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import paddle
+import torch
 import numpy as np
-
+from paddle.fluid.framework import in_dygraph_mode
 TOLERANCE = {
     "float32": {"atol": 1e-6, "rtol": 1e-6},
     "float16": {"atol": 1e-3, "rtol": 1e-3},
@@ -24,14 +25,20 @@ TOLERANCE = {
 def convert_dtype_to_torch_type(dtype):
     import torch
 
-    if dtype == 'float32':
+    if dtype in ["float32", np.float32]:
         return torch.float32
-    elif dtype == 'float16':
+    elif dtype in ['float16', np.float16]:
         return torch.float16
-    elif dtype == 'bfloat16':
+    elif dtype in ['bfloat16', np.uint16]:
         return torch.bfloat16
 
 
+def grad(outputs, inputs, grad_outputs=None, no_grad_vars=None):
+    if in_dygraph_mode():
+        return paddle.grad(outputs, inputs, grad_outputs=grad_outputs, no_grad_vars=no_grad_vars)
+    else:
+        return paddle.static.gradients(outputs, inputs, target_gradients=grad_outputs, no_grad_set=no_grad_vars)
+    
 def np_assert_accuracy(
     np_a,
     np_b,
