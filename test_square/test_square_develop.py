@@ -27,7 +27,9 @@ from utils import (
     convert_dtype_to_torch_type,
     np_assert_accuracy,
     np_assert_staility,
+    grad
 )
+from api_test import ApiTest
 
 class TestSquareDevelopCase1_FP32(unittest.TestCase):
     def setUp(self):
@@ -616,7 +618,62 @@ class TestSquareDevelopCase16_BFP16(TestSquareDevelopCase8_FP32):
     def init_params(self):
         self.dtype = "float16"
         self.size = [9632]
- 
+
+class TestSquareFP32(ApiTest):
+    def setUp(self):
+        self.init_configs()
+        self.init_inputs()
+
+    def init_configs(self):
+        self.dtype = "float32"
+        
+    def init_inputs(self):
+        x = np.random.random(size=(10,10)).astype("float32")
+        self.inputs = [x]
+        self.out_grads = [np.random.random(size=(10,10)).astype("float32")]
+
+    def cal_paddle_res(self, inputs, out_grads=None):
+        out = paddle.square(inputs[0])
+        grad_out = grad(out, inputs[0], out_grads)
+        return out, grad_out
+
+    def cal_torch_res(self, inputs, out_grads=None):
+        out = torch.square(inputs[0])
+        grad_out = torch.autograd.grad(out, inputs[0], out_grads)
+        return out, grad_out
+
+    def test_eager_res(self):
+        self.check_eager_res()
+
+    def test_static_res(self):
+        self.check_static_res()
+
+    def test_eager_stability(self):
+        self.check_eager_stability()
+
+    def test_static_stability(self):
+        self.check_static_stability()
+
+
+class TestSquareFP16(TestSquareFP32):
+    def init_configs(self):
+        self.dtype = "float16"
+        
+    def init_inputs(self):
+        x = np.random.random(size=(10,10)).astype("float16")
+        self.inputs = [x]
+        self.out_grads = [np.random.random(size=(10,10)).astype("float16")]
+
+
+class TestSquareBFP16(TestSquareFP32):
+    def init_configs(self):
+        self.dtype = "bfloat16"
+        
+    def init_inputs(self):
+        x = np.random.random(size=(10,10)).astype("float32")
+        self.inputs = [x]
+        self.out_grads = [np.random.random(size=(10,10)).astype("float32")]
+
 if __name__ == '__main__':
     np.random.seed(2023)
     unittest.main()
