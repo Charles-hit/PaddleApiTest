@@ -5,7 +5,7 @@ import paddle.distributed.fleet as fleet
 import init_config_class
 import random
 import sys
-sys.path.append("../..")
+sys.path.append("../../..")
 from utils import (
     np_assert_accuracy
 )
@@ -21,21 +21,12 @@ def set_random_seed(seed):
     fleet.meta_parallel.model_parallel_random_seed(seed)
 
 class TestPaddle(init_config_class.InitConfigClass):
-    def __init__(self, group, id, test_mode=1, np_input_dir="", dtype="", save_static_res_path="" , save_eager_res_path="", torch_dir=""):
-        self._init_params(np_input_dir, dtype, save_static_res_path, save_eager_res_path)
+    def __init__(self, group, test_mode=1, np_input_dir_forward="", np_input_dir_backward="", dtype=""):
+        self._init_params(np_input_dir_forward, np_input_dir_backward, dtype)
         self._init_threshold()
         self._init_np_inputs_and_dout()
         self._group = group
-        self.id = id
         self.test_mode = test_mode
-        world_size = paddle.distributed.get_world_size()
-        rank = paddle.distributed.get_rank()
-        print("self._np_table.shape: ", self._np_table.shape)
-        self._np_paddle_table = np.array_split(self._np_table, world_size)[rank]
-        if test_mode == 1:
-            self._atol = 1e-2
-        elif test_mode == 2:
-            self._atol = 1e-6
     
     def _gen_eager_inputs_and_dout(self):
         place = paddle.device.get_device()
@@ -46,7 +37,7 @@ class TestPaddle(init_config_class.InitConfigClass):
         )
         x_eager.stop_gradient = False
         table_eager = paddle.to_tensor(
-            self._np_paddle_table,
+            self._np_table,
             dtype=self._dtype if self._dtype != 'bfloat16' else "float32",
             place=place,
         )
@@ -74,7 +65,7 @@ class TestPaddle(init_config_class.InitConfigClass):
             table_t = paddle.cast(table, dtype="uint16")
             dout_t = paddle.cast(dout, dtype="uint16")
 
-        embedding = fleet.meta_parallel.VocabParallelEmbedding(init_config_class.dim_1[self.id], init_config_class.dim_3[self.id], mp_group=self._group)
+        embedding = fleet.meta_parallel.VocabParallelEmbedding(self._num_embeddings, self._embedding_dim, mp_group=self._group)
         paddle.assign(table_t, embedding.weight)
         out = embedding(x_t)
 
@@ -110,39 +101,6 @@ class TestPaddle(init_config_class.InitConfigClass):
         global_out.append(out_eager_np)
         global_dout.append(out_grads_eager_np)
 
-        if(self._dtype == "bfloat16"):
-            try:
-                np_assert_accuracy(
-                    global_out[0],
-                    global_out[1],
-                    self._atol,
-                    self._atol,
-                    "fp32_vs_bf16",
-                    version_a="fp32",
-                    version_b="bf16",
-                    eager_or_static_mode="eager",
-                    fwd_or_bkd="forward",
-                    api="fleet.meta_parallel.VocabParallelEmbedding",
-                )
-            except Exception as e:
-                print(e)
-
-            try:
-                np_assert_accuracy(
-                    global_dout[0],
-                    global_dout[1],
-                    self._atol,
-                    self._atol,
-                    "fp32_vs_bf16",
-                    version_a="fp32",
-                    version_b="bf16",
-                    eager_or_static_mode="eager",
-                    fwd_or_bkd="backward",
-                    api="fleet.meta_parallel.VocabParallelEmbedding",
-                )
-            except Exception as e:
-                print(e)
-
         del out_eager
         del out_grads_eager
         paddle.device.cuda.empty_cache()
@@ -157,6 +115,7 @@ dist_strategy.hybrid_configs = {
     "pp_degree": 1,
     "dp_degree": 1,
 }
+rank = paddle_dist.get_rank()
 paddle_dist.fleet.init(is_collective=True, strategy = dist_strategy)
 
 set_random_seed(1024)
@@ -166,20 +125,53 @@ group = paddle_dist.collective._get_default_group()
 for test_mode in [1,2]:
     print("test_mode_{test_mode} start*************************************************************************" \
         .format(test_mode=test_mode))
-    for id in [1]:
-        global_out.clear()
-        global_dout.clear()   
-        for dtype in dtype_list:
 
-            np_input_dir = "./inputs_case{id}.npz".format(id=id)
-            save_static_res_path = "./static_develop_res_case{id}_{dtype}.npz".format(id=id, dtype=dtype) 
-            save_eager_res_path = "./eager_develop_res_case{id}_{dtype}.npz".format(id=id, dtype=dtype)
-            torch_dir = "./torch_out_{dtype}_{id}.npz".format(dtype=dtype, id=id)
+    if test_mode == 1:
+        atol = 1e-2
+    elif test_mode == 2:
+        atol = 1e-6
 
-            test_paddle = TestPaddle(group, id - 1, test_mode, np_input_dir, dtype, save_static_res_path, save_eager_res_path, torch_dir)
-            test_paddle._test_eager_accuracy()
-            print("eager {dtype} finish".format(dtype=dtype))
-            print("{dtype} finish".format(dtype=dtype))
+    global_out.clear()
+    global_dout.clear()   
+    for dtype in dtype_list:
+
+        np_input_dir_forward = "./data/vpe-int64-bf16-bf16-eager_in_tmp_477-word_embedding_expanded_{rank}.w_0-eager_in_tmp_486-pp-0-mp-{rank}.npz".format(rank=rank)
+        np_input_dir_backward = "./data/vpe-int64-bf16-bf16-eager_in_tmp_477-word_embedding_expanded_{rank}.w_0-eager_in_tmp_486-pp-0-mp-{rank}.npy".format(rank=rank)
+
+        test_paddle = TestPaddle(group, test_mode, np_input_dir_forward, np_input_dir_backward, dtype)
+        test_paddle._test_eager_accuracy()
+    
+    try:
+        np_assert_accuracy(
+            global_out[0],
+            global_out[1],
+            atol,
+            atol,
+            "fp32_vs_bf16",
+            version_a="fp32",
+            version_b="bf16",
+            eager_or_static_mode="eager",
+            fwd_or_bkd="forward",
+            api="fleet.meta_parallel.VocabParallelEmbedding",
+        )
+    except Exception as e:
+        print(e)
+
+    try:
+        np_assert_accuracy(
+            global_dout[0],
+            global_dout[1],
+            atol,
+            atol,
+            "fp32_vs_bf16",
+            version_a="fp32",
+            version_b="bf16",
+            eager_or_static_mode="eager",
+            fwd_or_bkd="backward",
+            api="fleet.meta_parallel.VocabParallelEmbedding",
+        )
+    except Exception as e:
+        print(e)
     print("test_mode_{test_mode} end*************************************************************************" \
         .format(test_mode=test_mode))
 
