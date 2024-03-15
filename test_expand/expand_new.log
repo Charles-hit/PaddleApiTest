@@ -1,0 +1,63 @@
+> /ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py(115)cal_torch_res()
+-> out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
+(Pdb) (Pdb) E> /ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py(115)cal_torch_res()
+-> out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
+(Pdb) E> /ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py(115)cal_torch_res()
+-> out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
+(Pdb) --KeyboardInterrupt--
+(Pdb) --KeyboardInterrupt--
+(Pdb) --KeyboardInterrupt--
+(Pdb) --KeyboardInterrupt--
+(Pdb) E
+======================================================================
+ERROR: test_eager_accuracy (__main__.TestExpandDevelopCase1_BF16)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py", line 46, in setUp
+    out_torch, out_grads_torch = self.cal_torch_res(
+  File "/ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py", line 115, in cal_torch_res
+    out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
+  File "/ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py", line 115, in cal_torch_res
+    out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
+  File "/usr/lib/python3.10/bdb.py", line 90, in trace_dispatch
+    return self.dispatch_line(frame)
+  File "/usr/lib/python3.10/bdb.py", line 115, in dispatch_line
+    if self.quitting: raise BdbQuit
+bdb.BdbQuit
+
+======================================================================
+ERROR: test_eager_accuracy (__main__.TestExpandDevelopCase1_FP16)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py", line 46, in setUp
+    out_torch, out_grads_torch = self.cal_torch_res(
+  File "/ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py", line 115, in cal_torch_res
+    out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
+  File "/ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py", line 115, in cal_torch_res
+    out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
+  File "/usr/lib/python3.10/bdb.py", line 90, in trace_dispatch
+    return self.dispatch_line(frame)
+  File "/usr/lib/python3.10/bdb.py", line 115, in dispatch_line
+    if self.quitting: raise BdbQuit
+bdb.BdbQuit
+
+======================================================================
+ERROR: test_eager_accuracy (__main__.TestExpandDevelopCase1_FP32)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py", line 46, in setUp
+    out_torch, out_grads_torch = self.cal_torch_res(
+  File "/ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py", line 115, in cal_torch_res
+    out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
+  File "/ssd2/chenxi67/PaddleApiTest/test_expand/test_expand_develop.py", line 115, in cal_torch_res
+    out_grads = torch.autograd.grad([out], [x], grad_outputs=[dout_t])
+  File "/usr/lib/python3.10/bdb.py", line 90, in trace_dispatch
+    return self.dispatch_line(frame)
+  File "/usr/lib/python3.10/bdb.py", line 115, in dispatch_line
+    if self.quitting: raise BdbQuit
+bdb.BdbQuit
+
+----------------------------------------------------------------------
+Ran 3 tests in 88.363s
+
+FAILED (errors=3)

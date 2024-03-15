@@ -1,0 +1,9 @@
+<frozen importlib._bootstrap>:914: ImportWarning: _SixMetaPathImporter.find_spec() not found; falling back to find_module()
+<frozen importlib._bootstrap>:914: ImportWarning: _SixMetaPathImporter.find_spec() not found; falling back to find_module()
+W0315 23:08:16.459079 35048 gpu_resources.cc:119] Please NOTE: device: 0, GPU Compute Capability: 8.0, Driver API Version: 12.0, Runtime API Version: 11.8
+W0315 23:08:16.461170 35048 gpu_resources.cc:164] device: 0, cuDNN Version: 8.9.
+......
+----------------------------------------------------------------------
+Ran 6 tests in 30.346s
+
+OK

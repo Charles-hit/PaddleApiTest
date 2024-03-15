@@ -1,0 +1,4 @@
+  File "/ssd2/chenxi67/PaddleApiTest/test_einsum/test_einsum_develop.py", line 88
+    if self.in_0_dtype != 'bfloat16'
+    ^^
+SyntaxError: invalid syntax

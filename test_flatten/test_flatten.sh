@@ -1,0 +1,1 @@
+CUDA_VISABLE_DEVICES=2 python test_flatten_develop.py > flatten_new.log 2>&1
