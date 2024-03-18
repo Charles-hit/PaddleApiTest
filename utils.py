@@ -14,7 +14,7 @@
 import paddle
 import torch
 import numpy as np
-from paddle.fluid.framework import in_dygraph_mode
+from paddle.base.framework import in_dygraph_mode
 TOLERANCE = {
     "float32": {"atol": 1e-6, "rtol": 1e-6},
     "float16": {"atol": 1e-3, "rtol": 1e-3},
@@ -31,6 +31,8 @@ def convert_dtype_to_torch_type(dtype):
         return torch.float16
     elif dtype in ['bfloat16', np.uint16]:
         return torch.bfloat16
+    elif dtype in ['uint8', np.uint8]:
+        return torch.uint8
 
 
 def grad(outputs, inputs, grad_outputs=None, no_grad_vars=None):
@@ -85,9 +87,9 @@ def np_assert_accuracy(
             )
             + 'max_rtol value , {version_a}_value: {value_a}, {version_b}_value: {value_b},\n'.format(
                 version_a=version_a,
-                value_a=str(np_a_flatten_nonzero[max_rtol_idx].item()),
+                value_a=str(np_a_flatten_nonzero[max_rtol_idx].item()) if max_rtol_idx < len(np_a_flatten_nonzero) else '',
                 version_b=version_b,
-                value_b=str(np_b_flatten_nonzero[max_rtol_idx].item()),
+                value_b=str(np_b_flatten_nonzero[max_rtol_idx].item()) if max_rtol_idx < len(np_b_flatten_nonzero) else '',
             )
         ),
     )
