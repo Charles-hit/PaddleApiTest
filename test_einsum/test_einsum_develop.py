@@ -216,11 +216,31 @@ class TestEinsumDevelopCase2(TestEinsumDevelopCase1):
         self.dout_shape = [10,16]
         self.init_dtype()
 
-class TestEinsumDevelopCase3(TestEinsumDevelopCase1):
+# class TestEinsumDevelopCase3(TestEinsumDevelopCase1):
+#     def init_params(self):
+#         self.equation = 'i,j->ij'
+#         self.in_0_shape = [55]
+#         self.in_0_dtype = "float32"
+#         self.in_1_shape = [32]
+#         self.in_1_dtype = "bfloat16"
+#         self.dout_shape = [55,32]
+#         self.init_dtype()
+
+class TestEinsumDevelopCase3_1(TestEinsumDevelopCase1):
     def init_params(self):
         self.equation = 'i,j->ij'
         self.in_0_shape = [55]
         self.in_0_dtype = "float32"
+        self.in_1_shape = [32]
+        self.in_1_dtype = "float32"
+        self.dout_shape = [55,32]
+        self.init_dtype()
+
+class TestEinsumDevelopCase3_2(TestEinsumDevelopCase1):
+    def init_params(self):
+        self.equation = 'i,j->ij'
+        self.in_0_shape = [55]
+        self.in_0_dtype = "bfloat16"
         self.in_1_shape = [32]
         self.in_1_dtype = "bfloat16"
         self.dout_shape = [55,32]
