@@ -519,6 +519,130 @@ class TestGaussianDevelopCase15_BFP16(TestGaussianDevelopCase10_FP32):
         self.std = 1
 
 
+class TestGaussianDevelopCase16_FP32(TestGaussianDevelopCase1_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [1, 4, 40, 72]
+        self.mean = 0.0
+        self.std = 1.0
+
+    # Only run `test_eager_accuracy` function so skip other 3 test functions
+    def test_static_accuracy(self):
+        pass
+
+    def test_eager_stability(self):
+        pass
+
+    def test_static_stability(self):
+        pass
+
+
+class TestGaussianDevelopCase16_FP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [1, 4, 40, 72]
+        self.mean = 0.0
+        self.std = 1.0
+
+class TestGaussianDevelopCase16_BFP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.size = [1, 4, 40, 72]
+        self.mean = 0.0
+        self.std = 1.0
+
+
+class TestGaussianDevelopCase17_FP32(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [10, 1, 4, 40, 72]
+        self.mean = 0.0
+        self.std = 1.0
+
+class TestGaussianDevelopCase17_FP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [10, 1, 4, 40, 72]
+        self.mean = 0.0
+        self.std = 1.0
+
+class TestGaussianDevelopCase17_BFP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16" 
+        self.size = [10, 1, 4, 40, 72]
+        self.mean = 0.0
+        self.std = 1.0
+
+
+class TestGaussianDevelopCase18_FP32(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [10, 1, 1, 1, 1]
+        self.mean = 0.0
+        self.std = 1.0
+
+
+class TestGaussianDevelopCase18_FP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [10, 1, 1, 1, 1]
+        self.mean = 0.0
+        self.std = 1.0
+
+class TestGaussianDevelopCase18_BFP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.size = [10, 1, 1, 1, 1]
+        self.mean = 0.0
+        self.std = 1.0
+
+
+class TestGaussianDevelopCase19_FP32(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [130528, 4096]
+        self.mean = 0.0
+        self.std = 0.0038543731086716246
+
+
+class TestGaussianDevelopCase19_FP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [130528, 4096]
+        self.mean = 0.0
+        self.std = 0.0038543731086716246
+
+class TestGaussianDevelopCase19_BFP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.size = [130528, 4096]
+        self.mean = 0.0
+        self.std = 0.0038543731086716246
+
+class TestGaussianDevelopCase20_FP32(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float32"
+        self.size = [4096, 4096, 256]
+        self.mean = 0.0
+        self.std = 0.0038543731086716246
+
+
+class TestGaussianDevelopCase20_FP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "float16"
+        self.size = [4096, 4096, 256]
+        self.mean = 0.0
+        self.std = 0.0038543731086716246
+
+class TestGaussianDevelopCase20_BFP16(TestGaussianDevelopCase16_FP32):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.size = [4096, 4096, 256]
+        self.mean = 0.0
+        self.std = 0.0038543731086716246
+
+
+
 
 if __name__ == '__main__':
     np.random.seed(2023)

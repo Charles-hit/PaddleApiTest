@@ -418,6 +418,638 @@ class TestStackDevelopCase3_BFP16(TestStackDevelopCase3_FP32):
     def init_params(self):
         self.dtype = "bfloat16"
 
+class TestStackDevelopCase4_UINT8(unittest.TestCase):
+    def setUp(self):
+        self.init_params()
+        self.init_np_inputs_and_dout()
+        x_torch, dout_torch = self.gen_torch_inputs_and_dout()
+        out_torch, out_grads_torch = self.cal_torch_res(
+            x_torch, dout_torch
+        )
+        del x_torch
+        del dout_torch
+        self.out_torch = out_torch.cpu().detach().numpy()
+        self.out_grads_torch = map_structure(
+            lambda x: x.cpu().detach().numpy(),
+            out_grads_torch,
+        )
+        del out_torch, out_grads_torch
+        torch.cuda.empty_cache()
+
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 1, 256, 256]
+
+
+    def init_np_inputs_and_dout(self):
+        # init np array
+        self.np_x = [np.random.random(size=self.tensor_shape).astype("float32") - 0.5 for _ in range(self.tensor_num)]
+        self.np_dout = np.random.random(size=self.out_shape).astype("float32") - 0.5
+        # convert np array dtype
+        if self.dtype == "float16":
+            self.np_x = [self.np_x[i].astype("float16") for i in range(len(self.np_x)) ]
+            self.np_dout = self.np_dout.astype("float16")
+
+    def gen_torch_inputs_and_dout(self):
+        x_torch = [ torch.tensor(
+            self.np_x[i],
+            device='cuda',
+            dtype=convert_dtype_to_torch_type(self.dtype)
+            if self.dtype != 'bfloat16'
+            else torch.float32,
+            requires_grad=True if self.dtype != 'uint8' else False,
+        ) for i in range(len(self.np_x)) ]
+
+        dout_torch = torch.tensor(
+            self.np_dout,
+            device='cuda',
+            dtype=convert_dtype_to_torch_type(self.dtype)
+            if self.dtype != 'bfloat16'
+            else torch.float32,
+            requires_grad=True if self.dtype != 'uint8' else False,
+        )
+        return x_torch, dout_torch
+
+    def gen_eager_inputs_and_dout(self):
+        x_eager = [ paddle.to_tensor(
+            self.np_x[i],
+            dtype=self.dtype if self.dtype != 'bfloat16' else "float32",
+            place="gpu",
+        ) for i in range(len(self.np_x)) ]
+        for i in x_eager:
+            i.stop_gradient = False if self.dtype != 'uint8' else True
+
+        dout_eager = paddle.to_tensor(
+            self.np_dout,
+            dtype=self.dtype if self.dtype != 'bfloat16' else "float32",
+            place="gpu",
+        )
+        i.stop_gradient = False if self.dtype != 'uint8' else True
+        return x_eager, dout_eager
+
+    def cal_torch_res(self, x, dout):
+        if self.dtype =='uint8':
+            out = torch.stack(x, dim=self.axis)
+            return out, []
+        else:
+            if self.dtype == "bfloat16":
+                x = [i.to(dtype=torch.bfloat16) for i in x]
+                dout = dout.to(dtype=torch.bfloat16)
+            out = torch.stack(x, dim=self.axis)
+            out_grads = torch.autograd.grad([out], x, grad_outputs=[dout])
+            if self.dtype == "bfloat16":
+                out = out.to(dtype=torch.float32)
+                out_grads = map_structure(lambda x: x.to(dtype=torch.float32), out_grads)
+            return out, out_grads
+
+    def cal_eager_res(self, x, dout):
+        if self.dtype =='uint8':
+            out = paddle.stack(x, axis=self.axis)
+            return out, []
+        else:
+            if self.dtype == "bfloat16":
+                x = [paddle.cast(i, dtype="uint16") for i in x]
+                dout = paddle.cast(dout, dtype="uint16")
+            out = paddle.stack(x, axis=self.axis)
+            out_grads = paddle.grad([out], x, grad_outputs=[dout])
+            if self.dtype == "bfloat16" or self.dtype == "uint8":
+                out = paddle.cast(out, dtype="float32")
+                out_grads = map_structure(lambda x: paddle.cast(x, dtype="float32"), out_grads)
+            return out, out_grads
+
+    def test_eager_accuracy(self):
+        x_eager, dout_eager = self.gen_eager_inputs_and_dout()
+        out_eager, out_grads_eager = self.cal_eager_res(
+            x_eager, dout_eager
+        )
+        del x_eager
+        del dout_eager
+        paddle.device.cuda.empty_cache()
+        out_eager_np = out_eager.numpy()
+        out_grads_eager_np = map_structure(
+            lambda x: x.numpy(),
+            out_grads_eager,
+        )
+        del out_eager
+        del out_grads_eager
+        paddle.device.cuda.empty_cache()
+        # compare develop eager forward res with torch
+        np.testing.assert_equal(out_eager_np, self.out_torch)
+        # compare develop eager backward res with torch
+        np.testing.assert_equal(out_grads_eager_np, self.out_grads_torch)
+       
+
+class TestStackDevelopCase4_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 1, 256, 256]
+
+class TestStackDevelopCase4_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 1, 256, 256]
+
+class TestStackDevelopCase4_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 1, 256, 256]
+
+class TestStackDevelopCase5_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 3, 320, 576]
+
+class TestStackDevelopCase5_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 3, 320, 576]
+
+class TestStackDevelopCase5_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 3, 320, 576]
+
+class TestStackDevelopCase5_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 3, 320, 576]
+
+
+class TestStackDevelopCase6_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 1, 256, 256]
+
+class TestStackDevelopCase6_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 1, 256, 256]
+
+class TestStackDevelopCase6_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 1, 256, 256]
+
+class TestStackDevelopCase6_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 1, 256, 256]
+
+
+class TestStackDevelopCase7_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 3, 320, 576]
+
+class TestStackDevelopCase7_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 3, 320, 576]
+
+class TestStackDevelopCase7_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 3, 320, 576]
+
+class TestStackDevelopCase7_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 3, 320, 576]
+
+
+class TestStackDevelopCase8_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [256, 10, 1, 64]
+        self.tensor_num = 2
+        self.axis = 0
+        self.out_shape = [2, 256, 10, 1, 64]
+
+class TestStackDevelopCase8_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [256, 10, 1, 64]
+        self.tensor_num = 2
+        self.axis = 0
+        self.out_shape = [2, 256, 10, 1, 64]
+
+class TestStackDevelopCase8_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [256, 10, 1, 64]
+        self.tensor_num = 2
+        self.axis = 0
+        self.out_shape = [2, 256, 10, 1, 64]
+
+class TestStackDevelopCase8_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [256, 10, 1, 64]
+        self.tensor_num = 2
+        self.axis = 0
+        self.out_shape = [2, 256, 10, 1, 64]
+
+class TestStackDevelopCase9_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [44, 3, 320, 576]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 44, 3, 320, 576]
+
+class TestStackDevelopCase9_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [44, 3, 320, 576]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 44, 3, 320, 576]
+
+class TestStackDevelopCase9_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [44, 3, 320, 576]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 44, 3, 320, 576]
+
+class TestStackDevelopCase9_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [44, 3, 320, 576]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 44, 3, 320, 576]
+
+
+class TestStackDevelopCase10_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [2, 256, 10, 1, 64]
+        self.tensor_num = 2
+        self.axis = 0
+        self.out_shape = [2, 2, 256, 10, 1, 64]
+
+class TestStackDevelopCase10_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [2, 256, 10, 1, 64]
+        self.tensor_num = 2
+        self.axis = 0
+        self.out_shape = [2, 2, 256, 10, 1, 64]
+
+class TestStackDevelopCase10_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [2, 256, 10, 1, 64]
+        self.tensor_num = 2
+        self.axis = 0
+        self.out_shape = [2, 2, 256, 10, 1, 64]
+
+class TestStackDevelopCase10_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [2, 256, 10, 1, 64]
+        self.tensor_num = 2
+        self.axis = 0
+        self.out_shape = [2, 2, 256, 10, 1, 64]
+
+
+
+class TestStackDevelopCase11_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 1, 256, 256]
+
+class TestStackDevelopCase11_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 1, 256, 256]
+
+class TestStackDevelopCase11_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 1, 256, 256]
+
+class TestStackDevelopCase11_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [1, 256, 256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 1, 256, 256]
+
+
+
+class TestStackDevelopCase12_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 256]
+
+class TestStackDevelopCase12_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 256]
+
+class TestStackDevelopCase12_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 256]
+
+class TestStackDevelopCase12_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 256]
+
+
+
+
+class TestStackDevelopCase13_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 44
+        self.axis = 0
+        self.out_shape = [44, 3, 320, 576]
+
+class TestStackDevelopCase13_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 44
+        self.axis = 0
+        self.out_shape = [44, 3, 320, 576]
+
+class TestStackDevelopCase13_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 44
+        self.axis = 0
+        self.out_shape = [44, 3, 320, 576]
+
+class TestStackDevelopCase13_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [3, 320, 576]
+        self.tensor_num = 44
+        self.axis = 0
+        self.out_shape = [44, 3, 320, 576]
+
+
+
+
+class TestStackDevelopCase14_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 2, 256]
+
+class TestStackDevelopCase14_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 2, 256]
+
+class TestStackDevelopCase14_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 2, 256]
+
+class TestStackDevelopCase14_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 2, 256]
+
+
+
+
+
+
+
+
+class TestStackDevelopCase15_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 256]
+
+class TestStackDevelopCase15_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 256]
+
+class TestStackDevelopCase15_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 256]
+
+class TestStackDevelopCase15_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [256]
+        self.tensor_num = 1
+        self.axis = 0
+        self.out_shape = [1, 256]
+
+
+
+class TestStackDevelopCase16_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 256]
+
+class TestStackDevelopCase16_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 256]
+
+class TestStackDevelopCase16_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 256]
+
+class TestStackDevelopCase16_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 256]
+
+
+
+
+class TestStackDevelopCase17_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 2, 256]
+
+class TestStackDevelopCase17_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 2, 256]
+
+
+class TestStackDevelopCase17_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 2, 256]
+
+
+class TestStackDevelopCase17_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 12
+        self.axis = 0
+        self.out_shape = [12, 2, 256]
+
+
+
+
+class TestStackDevelopCase18_UINT8(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "uint8"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 2, 256]
+
+class TestStackDevelopCase18_FP32(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float32"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 2, 256]
+
+
+class TestStackDevelopCase18_FP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "float16"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 2, 256]
+
+
+class TestStackDevelopCase18_BFP16(TestStackDevelopCase4_UINT8):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.tensor_shape = [2, 256]
+        self.tensor_num = 10
+        self.axis = 0
+        self.out_shape = [10, 2, 256]
+
+
+
+
 if __name__ == '__main__':
     np.random.seed(2023)
     unittest.main()
