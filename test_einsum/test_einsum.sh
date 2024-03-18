@@ -1,0 +1,1 @@
+CUDA_VISABLE_DEVICES=2 python test_einsum_develop.py > einsum_new.log 2>&1
