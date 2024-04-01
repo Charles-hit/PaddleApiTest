@@ -1,0 +1,57 @@
+<frozen importlib._bootstrap>:914: ImportWarning: _SixMetaPathImporter.find_spec() not found; falling back to find_module()
+<frozen importlib._bootstrap>:914: ImportWarning: _SixMetaPathImporter.find_spec() not found; falling back to find_module()
+W0315 15:18:27.909927  5943 gpu_resources.cc:119] Please NOTE: device: 0, GPU Compute Capability: 8.0, Driver API Version: 12.0, Runtime API Version: 11.8
+W0315 15:18:27.911448  5943 gpu_resources.cc:164] device: 0, cuDNN Version: 8.9.
+F
+======================================================================
+FAIL: test_eager_accuracy (__main__.TestBmmDevelopCase1_FP32)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/ssd2/chenxi67/PaddleApiTest/test_bmm/test_bmm_develop.py", line 170, in test_eager_accuracy
+    np_assert_accuracy(
+  File "/ssd2/chenxi67/PaddleApiTest/test_bmm/../utils.py", line 66, in np_assert_accuracy
+    np.testing.assert_allclose(
+  File "/usr/local/lib/python3.10/dist-packages/numpy/testing/_private/utils.py", line 1504, in assert_allclose
+    assert_array_compare(compare, actual, desired, err_msg=str(err_msg),
+  File "/usr/lib/python3.10/contextlib.py", line 79, in inner
+    return func(*args, **kwds)
+  File "/usr/local/lib/python3.10/dist-packages/numpy/testing/_private/utils.py", line 797, in assert_array_compare
+    raise AssertionError(msg)
+AssertionError: 
+Not equal to tolerance rtol=1e-06, atol=1e-06
+paddle.bmm eager forward: compare paddle_develop res with torch failed in float32 dtype,
+max_atol value, paddle_develop_value: -2.0101757049560547, torch_value: -2.0120413303375244,
+max_rtol value , paddle_develop_value: 0.0006058067083358765, torch_value: -3.93296403444765e-07,
+
+Mismatched elements: 10435989 / 10485760 (99.5%)
+Max absolute difference: 0.00186563
+Max relative difference: 1541.3312
+ x: array([[[-6.510645e-03, -2.658865e-01,  1.022227e+00, ...,
+          1.276584e-01, -8.326049e-01, -1.608755e+00],
+        [-5.973139e-01, -5.801319e-01, -1.505083e+00, ...,...
+ y: array([[[-6.844910e-03, -2.661350e-01,  1.021302e+00, ...,
+          1.273761e-01, -8.327266e-01, -1.609184e+00],
+        [-5.973423e-01, -5.796294e-01, -1.505376e+00, ...,...
+
+----------------------------------------------------------------------
+Ran 1 test in 34.482s
+
+FAILED (failures=1)
+<frozen importlib._bootstrap>:914: ImportWarning: _SixMetaPathImporter.find_spec() not found; falling back to find_module()
+<frozen importlib._bootstrap>:914: ImportWarning: _SixMetaPathImporter.find_spec() not found; falling back to find_module()
+W0315 15:19:09.165369  6185 gpu_resources.cc:119] Please NOTE: device: 0, GPU Compute Capability: 8.0, Driver API Version: 12.0, Runtime API Version: 11.8
+W0315 15:19:09.166985  6185 gpu_resources.cc:164] device: 0, cuDNN Version: 8.9.
+.
+----------------------------------------------------------------------
+Ran 1 test in 39.986s
+
+OK
+<frozen importlib._bootstrap>:914: ImportWarning: _SixMetaPathImporter.find_spec() not found; falling back to find_module()
+<frozen importlib._bootstrap>:914: ImportWarning: _SixMetaPathImporter.find_spec() not found; falling back to find_module()
+W0315 15:19:55.330873  6411 gpu_resources.cc:119] Please NOTE: device: 0, GPU Compute Capability: 8.0, Driver API Version: 12.0, Runtime API Version: 11.8
+W0315 15:19:55.332033  6411 gpu_resources.cc:164] device: 0, cuDNN Version: 8.9.
+.
+----------------------------------------------------------------------
+Ran 1 test in 31.884s
+
+OK

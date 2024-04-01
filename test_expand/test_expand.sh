@@ -1,0 +1,1 @@
+CUDA_VISABLE_DEVICES=2 python test_expand_develop.py > expand_new.log 2>&1
