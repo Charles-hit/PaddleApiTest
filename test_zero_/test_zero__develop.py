@@ -262,6 +262,61 @@ class TestZero_DevelopCase11_BFP16(TestZero_DevelopCase1_FP32):
         self.size = [64]
 
 
+def create_test_class(
+    size,
+    dtype
+):
+    class TestClass(TestZero_DevelopCase1_FP32):
+        def init_params(self):
+            self.dtype = dtype
+            self.size = size
+
+    cls_name = "{parent_name}_{shape}_{dtype}".format(parent_name=TestZero_DevelopCase1_FP32.__name__, shape='_'.join(map(str, size)), dtype=str(dtype))
+    TestClass.__name__ = cls_name
+    globals()[cls_name] = TestClass
+
+size_list = [
+    [1280, 1280],
+    [5120, 1280],
+    [5120, 2048],
+    [1, 1025, 5120],
+    [1536],
+    [5120, 15360],
+    [5120, 1536],
+    [1, 1, 5120],
+    [2048, 49500],
+    [5120],
+    [5120, 3, 28, 28],
+    [5120, 5120],
+    [77, 1280],
+    [1280, 1536],
+    [15360],
+    [5504, 2048],
+    [25600, 5120],
+    [1280],
+    [2048, 5504],
+    [2048, 2048],
+    [5120, 25600],
+    [49408, 1280],
+    [2048],
+    [1280, 5120],
+    [49500, 2048],
+    [1],
+    [25600],
+    [5120, 1920],
+    [192],
+    [5120, 3200],
+    [3200],
+    [3200, 5120],
+    [640, 5120],
+    [1920],
+    [5120, 192],
+]
+
+for size in size_list:
+    for dtype in ["float16", "float32", "bfloat16"]:
+        create_test_class(size, dtype)
+
 
 if __name__ == '__main__':
     np.random.seed(2023)
