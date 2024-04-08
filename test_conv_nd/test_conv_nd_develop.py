@@ -471,6 +471,60 @@ class TestConvndDevelopCase5_FP16(TestConvndDevelopCase1_BFP16):
         self.out_shape = [1, 8, 40, 72]
 
 
+class TestConvndDevelopCase6_BFP16(TestConvndDevelopCase1_BFP16):
+    def init_params(self):
+        self.dtype = "bfloat16"
+        self.x_shape = [1, 3, 896, 896]
+        self.weight_shape = [5120, 3, 28, 28]
+        self.bias_shape = [5120]
+        self.stride = [28, 28]
+        self.padding = [0, 0]
+        self.padding_algorithm = 'EXPLICIT'
+        self.dilation = [1, 1]
+        self.groups = 1
+        self.data_format = 'NCHW'
+        self.channel_dim = 1
+        self.op_type = 'conv2d'
+        self.use_cudnn = True
+        self.out_shape = [1, 5120, 32, 32]
+
+class TestConvndDevelopCase6_FP32(TestConvndDevelopCase1_BFP16):
+    def init_params(self):
+        self.dtype = "float32"
+        self.x_shape = [1, 3, 896, 896]
+        self.weight_shape = [5120, 3, 28, 28]
+        self.bias_shape = [5120]
+        self.stride = [28, 28]
+        self.padding = [0, 0]
+        self.padding_algorithm = 'EXPLICIT'
+        self.dilation = [1, 1]
+        self.groups = 1
+        self.data_format = 'NCHW'
+        self.channel_dim = 1
+        self.op_type = 'conv2d'
+        self.use_cudnn = True
+        self.out_shape = [1, 5120, 32, 32]
+
+class TestConvndDevelopCase6_FP16(TestConvndDevelopCase1_BFP16):
+    def init_params(self):
+        self.dtype = "float16"
+        self.x_shape = [1, 3, 896, 896]
+        self.weight_shape = [5120, 3, 28, 28]
+        self.bias_shape = [5120]
+        self.stride = [28, 28]
+        self.padding = [0, 0]
+        self.padding_algorithm = 'EXPLICIT'
+        self.dilation = [1, 1]
+        self.groups = 1
+        self.data_format = 'NCHW'
+        self.channel_dim = 1
+        self.op_type = 'conv2d'
+        self.use_cudnn = True
+        self.out_shape = [1, 5120, 32, 32]
+
+
+
+
 if __name__ == '__main__':
     np.random.seed(2023)
     unittest.main()

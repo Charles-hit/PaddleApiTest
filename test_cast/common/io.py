@@ -11,7 +11,7 @@ class Pickle(object):
   @staticmethod
   def save(obj, path):
     with open(path, 'wb') as file:
-      pickle.dump(obj, file)
+      pickle.dump(obj, file, protocol=pickle.HIGHEST_PROTOCOL)
 
 class Result(object):
   def __init__(self, mode, data):

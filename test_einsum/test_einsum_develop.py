@@ -256,6 +256,17 @@ class TestEinsumDevelopCase4(TestEinsumDevelopCase1):
         self.dout_shape = [1,16]
         self.init_dtype()
 
+class TestEinsumDevelopCase6(TestEinsumDevelopCase1):
+    def init_params(self):
+        self.equation = 'i,j->ij'
+        self.in_0_shape = [32768]
+        self.in_0_dtype = "float32"
+        self.in_1_shape = [32]
+        self.in_1_dtype = "float32"
+        self.dout_shape = [32768,32]
+        self.init_dtype()
+
+
 # 3d shape
 class TestEinsumDevelopCase5(unittest.TestCase):
     def init_dtype(self):

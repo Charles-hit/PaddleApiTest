@@ -14,7 +14,10 @@
 import paddle
 import torch
 import numpy as np
-from paddle.base.framework import in_dygraph_mode
+try:
+    from paddle.fluid.framework import in_dygraph_mode
+except:
+    from paddle.base.framework import in_dygraph_mode
 TOLERANCE = {
     "float32": {"atol": 1e-6, "rtol": 1e-6},
     "float16": {"atol": 1e-3, "rtol": 1e-3},
@@ -33,6 +36,12 @@ def convert_dtype_to_torch_type(dtype):
         return torch.bfloat16
     elif dtype in ['uint8', np.uint8]:
         return torch.uint8
+    elif dtype in ['int32', np.int32]:
+        return torch.int32
+    elif dtype in ['int64', np.int64]:
+        return torch.int64
+    else:
+        raise ValueError(f'Unsupport dtype: {dtype}')
 
 
 def grad(outputs, inputs, grad_outputs=None, no_grad_vars=None):

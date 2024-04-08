@@ -338,6 +338,168 @@ class TestUniformDevelopCase12_BFP16(TestUniformDevelopCase1_FP32):
         self.dtype = 'bfloat16'
 
 
+class TestUniformDevelopCase13_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [49500, 2048]
+        self.low = -0.010788714864769802
+        self.high = 0.010788714864769802
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase14_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5504, 2048]
+        self.low = -0.02818672605010608
+        self.high = 0.02818672605010608
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase15_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [2048, 49500]
+        self.low = -0.010788714864769802
+        self.high = 0.010788714864769802
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase16_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [2048, 2048]
+        self.low = -0.038273277230987154
+        self.high = 0.038273277230987154
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase17_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5120, 192]
+        self.low = -0.03360830362111656
+        self.high = 0.03360830362111656
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase18_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [2048, 5504]
+        self.low = -0.02818672605010608
+        self.high = 0.02818672605010608
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase19_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5120, 2048]
+        self.low = -0.028931878117892232
+        self.high = 0.028931878117892232
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase20_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5120, 1920]
+        self.low = -0.02919371040605711
+        self.high = 0.02919371040605711
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase21_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [1280, 1280]
+        self.low = -0.04841229182759271
+        self.high = 0.04841229182759271
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase22_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [1280, 5120]
+        self.low = -0.030618621784789725
+        self.high = 0.030618621784789725
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase23_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5120, 1280]
+        self.low = -0.030618621784789725
+        self.high = 0.030618621784789725
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase24_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [640, 5120]
+        self.low = -0.03227486121839514
+        self.high = 0.03227486121839514
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase25_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [3200, 5120]
+        self.low = -0.026854307776478733
+        self.high = 0.026854307776478733
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase26_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [49408, 1280]
+        self.low = -0.010879853497231116
+        self.high = 0.010879853497231116
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase27_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5120, 3200]
+        self.low = -0.026854307776478733
+        self.high = 0.026854307776478733
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase28_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5120, 5120]
+        self.low = -0.024206145913796356
+        self.high = 0.024206145913796356
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase29_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5120, 15360]
+        self.low = -0.01711632992203644
+        self.high = 0.01711632992203644
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase30_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5120, 1536]
+        self.low = -0.03002402883845384
+        self.high = 0.03002402883845384
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase31_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [5120, 25600]
+        self.low = -0.013975424859373685
+        self.high = 0.013975424859373685
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+class TestUniformDevelopCase32_BFP16(TestUniformDevelopCase1_FP32):
+    def init_params(self):
+        self.size = [25600, 5120]
+        self.low = -0.013975424859373685
+        self.high = 0.013975424859373685
+        self.seed = 0
+        self.dtype = 'bfloat16'
+
+
+
 if __name__ == '__main__':
     np.random.seed(2023)
     unittest.main()
